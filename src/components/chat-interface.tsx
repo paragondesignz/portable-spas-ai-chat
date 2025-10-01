@@ -252,32 +252,38 @@ export default function ChatInterface() {
   };
 
   return (
-    <Card className="w-full h-full flex flex-col border-0 shadow-none">
-      <div className="p-4 bg-white">
-        <h2 className="text-xl font-semibold text-gray-800">Chat with us</h2>
-        <p className="text-sm text-gray-600">
-          {userName ? `Hi ${userName}! Ask us anything about our portable spas` : 'Ask us anything about our portable spas'}
-        </p>
-        <div className="flex gap-2 mt-2">
-          <button
-            onClick={handleClearChat}
-            className="text-xs px-3 py-1 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md text-gray-600 transition-colors"
-          >
-            Clear chat
-          </button>
-          {userName && (
+    <div className="w-full min-h-screen flex flex-col bg-white">
+      {/* Header - fixed at top */}
+      <div className="flex-shrink-0 p-4 border-b border-gray-100">
+        <div className="max-w-3xl mx-auto flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800">Chat with us</h2>
+            <p className="text-sm text-gray-600">
+              {userName ? `Hi ${userName}!` : 'Portable Spas New Zealand'}
+            </p>
+          </div>
+          <div className="flex gap-2">
             <button
-              onClick={handleChangeName}
-              className="text-xs px-3 py-1 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md text-gray-600 transition-colors"
+              onClick={handleClearChat}
+              className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg text-gray-600 transition-colors"
             >
-              Change name
+              Clear chat
             </button>
-          )}
+            {userName && (
+              <button
+                onClick={handleChangeName}
+                className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg text-gray-600 transition-colors"
+              >
+                Change name
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      <ScrollArea ref={scrollAreaRef} className="flex-1 p-4 bg-white relative">
-        <div className="space-y-4">
+      {/* Messages - grows with content */}
+      <ScrollArea ref={scrollAreaRef} className="flex-1 bg-white relative">
+        <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
           {messages.map((message, index) => (
             <div
               key={index}
@@ -286,10 +292,10 @@ export default function ChatInterface() {
               }`}
             >
               <div
-                className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                className={`max-w-[85%] rounded-2xl px-4 py-3 ${
                   message.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-foreground'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-900'
                 }`}
               >
                 {message.role === 'user' ? (
@@ -351,8 +357,8 @@ export default function ChatInterface() {
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-muted rounded-lg px-4 py-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
+              <div className="bg-gray-100 rounded-2xl px-4 py-3">
+                <Loader2 className="h-5 w-5 animate-spin text-gray-600" />
               </div>
             </div>
           )}
@@ -362,7 +368,7 @@ export default function ChatInterface() {
         {showScrollButton && (
           <button
             onClick={() => scrollToBottom('smooth')}
-            className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white border border-gray-300 rounded-full px-4 py-2 shadow-md hover:bg-gray-50 transition-all flex items-center gap-2 text-sm text-gray-700"
+            className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white border border-gray-200 rounded-full px-4 py-2 shadow-lg hover:shadow-xl hover:bg-gray-50 transition-all flex items-center gap-2 text-sm text-gray-700"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
@@ -372,21 +378,44 @@ export default function ChatInterface() {
         )}
       </ScrollArea>
 
-      <form onSubmit={handleSubmit} className="p-4 bg-white">
-        <div className="flex gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            disabled={isLoading}
-            className="flex-1"
-          />
-          <Button type="submit" disabled={isLoading || !input.trim()}>
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-      </form>
-    </Card>
+      {/* Input - centered like Claude */}
+      <div className="flex-shrink-0 border-t border-gray-100 bg-white">
+        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto p-4">
+          <div className="flex gap-3 items-end">
+            <div className="flex-1 relative">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Message Portable Spas..."
+                disabled={isLoading}
+                className="w-full px-4 py-3 text-base border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
+              />
+            </div>
+            <Button 
+              type="submit" 
+              disabled={isLoading || !input.trim()}
+              className="h-11 w-11 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 transition-colors"
+              size="icon"
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
+          <p className="text-xs text-gray-500 text-center mt-3">
+            AI can make mistakes. Check important info.
+          </p>
+        </form>
+      </div>
+    </div>
   );
 }
 
