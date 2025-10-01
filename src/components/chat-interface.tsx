@@ -50,7 +50,8 @@ export default function ChatInterface() {
   const [userName, setUserName] = useState('');
   const [askingForName, setAskingForName] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const messageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -101,26 +102,50 @@ export default function ChatInterface() {
     }
   }, [messages, userName, isInitialized]);
 
-  const scrollToLatestMessage = () => {
-    // Scroll to the beginning of the last message
-    const lastMessageIndex = messages.length - 1;
-    if (lastMessageIndex >= 0 && messageRefs.current[lastMessageIndex]) {
-      messageRefs.current[lastMessageIndex]?.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      });
+  // Scroll to bottom of chat
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTo({
+          top: scrollContainer.scrollHeight,
+          behavior
+        });
+      }
     }
   };
 
-  useEffect(() => {
-    // Update refs array size
-    messageRefs.current = messageRefs.current.slice(0, messages.length);
-  }, [messages]);
+  // Check if user has scrolled up
+  const checkScrollPosition = () => {
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+        const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+        setShowScrollButton(!isNearBottom && messages.length > 1);
+      }
+    }
+  };
 
+  // Auto-scroll when new messages arrive
   useEffect(() => {
-    // Scroll to latest message when messages change or loading state changes
-    scrollToLatestMessage();
-  }, [messages, isLoading]);
+    if (messages.length > 0 || isLoading) {
+      // Small delay to ensure DOM has updated
+      const timer = setTimeout(() => scrollToBottom('smooth'), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [messages.length, isLoading]);
+
+  // Attach scroll listener
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.addEventListener('scroll', checkScrollPosition);
+        return () => scrollContainer.removeEventListener('scroll', checkScrollPosition);
+      }
+    }
+  }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -251,12 +276,11 @@ export default function ChatInterface() {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-4 bg-white">
+      <ScrollArea ref={scrollAreaRef} className="flex-1 p-4 bg-white relative">
         <div className="space-y-4">
           {messages.map((message, index) => (
             <div
               key={index}
-              ref={(el) => { messageRefs.current[index] = el; }}
               className={`flex ${
                 message.role === 'user' ? 'justify-end' : 'justify-start'
               }`}
@@ -333,6 +357,19 @@ export default function ChatInterface() {
             </div>
           )}
         </div>
+        
+        {/* Scroll to bottom button */}
+        {showScrollButton && (
+          <button
+            onClick={() => scrollToBottom('smooth')}
+            className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white border border-gray-300 rounded-full px-4 py-2 shadow-md hover:bg-gray-50 transition-all flex items-center gap-2 text-sm text-gray-700"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+            </svg>
+            <span>New messages</span>
+          </button>
+        )}
       </ScrollArea>
 
       <form onSubmit={handleSubmit} className="p-4 bg-white">
