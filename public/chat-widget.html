@@ -599,13 +599,14 @@
       }
     }
     
-    // Scroll to bottom
+    // Scroll to beginning of latest message
     function scrollToBottom(behavior = 'smooth') {
-      const messagesArea = document.getElementById('messages-area');
-      if (messagesArea) {
-        messagesArea.scrollTo({
-          top: messagesArea.scrollHeight,
-          behavior: behavior
+      const messageElements = document.querySelectorAll('.message');
+      const lastMessage = messageElements[messageElements.length - 1];
+      if (lastMessage) {
+        lastMessage.scrollIntoView({
+          behavior: behavior,
+          block: 'start'
         });
       }
     }

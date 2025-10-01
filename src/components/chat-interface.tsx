@@ -52,6 +52,7 @@ export default function ChatInterface() {
   const [isInitialized, setIsInitialized] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const messageRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -102,16 +103,14 @@ export default function ChatInterface() {
     }
   }, [messages, userName, isInitialized]);
 
-  // Scroll to bottom of chat
-  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
-    if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollContainer) {
-        scrollContainer.scrollTo({
-          top: scrollContainer.scrollHeight,
-          behavior
-        });
-      }
+  // Scroll to beginning of latest message
+  const scrollToLatestMessage = (behavior: ScrollBehavior = 'smooth') => {
+    const lastIndex = messages.length - 1;
+    if (lastIndex >= 0 && messageRefs.current[lastIndex]) {
+      messageRefs.current[lastIndex]?.scrollIntoView({
+        behavior,
+        block: 'start'
+      });
     }
   };
 
@@ -131,7 +130,7 @@ export default function ChatInterface() {
   useEffect(() => {
     if (messages.length > 0 || isLoading) {
       // Small delay to ensure DOM has updated
-      const timer = setTimeout(() => scrollToBottom('smooth'), 100);
+      const timer = setTimeout(() => scrollToLatestMessage('smooth'), 100);
       return () => clearTimeout(timer);
     }
   }, [messages.length, isLoading]);
@@ -342,14 +341,15 @@ export default function ChatInterface() {
 
       {/* Messages - grows with content */}
       <ScrollArea ref={scrollAreaRef} className="flex-1 bg-white relative">
-        <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`flex ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-            >
+          <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                ref={(el) => { messageRefs.current[index] = el; }}
+                className={`flex ${
+                  message.role === 'user' ? 'justify-end' : 'justify-start'
+                }`}
+              >
               <div
                 className={`max-w-[85%] rounded-2xl px-4 py-3 ${
                   message.role === 'user'
@@ -423,18 +423,18 @@ export default function ChatInterface() {
           )}
         </div>
         
-        {/* Scroll to bottom button */}
-        {showScrollButton && (
-          <button
-            onClick={() => scrollToBottom('smooth')}
-            className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white border border-gray-200 rounded-full px-4 py-2 shadow-lg hover:shadow-xl hover:bg-gray-50 transition-all flex items-center gap-2 text-sm text-gray-700"
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
-            </svg>
-            <span>New messages</span>
-          </button>
-        )}
+            {/* Scroll to latest message button */}
+            {showScrollButton && (
+              <button
+                onClick={() => scrollToLatestMessage('smooth')}
+                className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white border border-gray-200 rounded-full px-4 py-2 shadow-lg hover:shadow-xl hover:bg-gray-50 transition-all flex items-center gap-2 text-sm text-gray-700"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+                </svg>
+                <span>New messages</span>
+              </button>
+            )}
       </ScrollArea>
 
       {/* Input - centered like Claude */}

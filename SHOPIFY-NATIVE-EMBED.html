@@ -644,13 +644,14 @@
     }
   }
   
-  // Scroll to bottom
+  // Scroll to beginning of latest message
   function scrollToBottom(behavior = 'smooth') {
-    const messagesEl = document.querySelector('.ps-messages');
-    if (messagesEl) {
-      messagesEl.scrollTo({
-        top: messagesEl.scrollHeight,
-        behavior: behavior
+    const messageElements = document.querySelectorAll('.ps-message');
+    const lastMessage = messageElements[messageElements.length - 1];
+    if (lastMessage) {
+      lastMessage.scrollIntoView({
+        behavior: behavior,
+        block: 'start'
       });
     }
   }
