@@ -1,449 +1,717 @@
-<!-- Portable Spas Chat Widget - Embed this anywhere -->
-<!-- Production API URL configured - ready to embed! -->
-<div id="portable-spas-chat-widget" data-api-url="https://portable-spas-ai-chat.vercel.app/api/chat"></div>
-
-<script>
-(function() {
-  'use strict';
-  
-  // Configuration
-  const WIDGET_ID = 'portable-spas-chat-widget';
-  const widget = document.getElementById(WIDGET_ID);
-  const API_URL = widget.getAttribute('data-api-url') || '/api/chat';
-  
-  // Inject styles with aggressive overrides
-  const styles = `
-    #${WIDGET_ID} {
-      all: initial;
-      display: block !important;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-      font-size: 14px !important;
-      line-height: 1.5 !important;
-      color: #1f2937 !important;
-      box-sizing: border-box !important;
-      width: 100% !important;
-      max-width: 100% !important;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portable Spas Chat Widget</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
     
-    #${WIDGET_ID} *, 
-    #${WIDGET_ID} *::before, 
-    #${WIDGET_ID} *::after {
-      box-sizing: border-box !important;
-      margin: 0 !important;
-      padding: 0 !important;
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: white;
     }
     
-    #${WIDGET_ID} .ps-chat-container {
-      display: flex !important;
-      flex-direction: column !important;
-      height: 600px !important;
-      max-height: 80vh !important;
-      background: white !important;
-      border: 1px solid #e5e7eb !important;
-      border-radius: 8px !important;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
-      overflow: hidden !important;
+    #chat-widget {
+      width: 100%;
+      max-width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: white;
     }
     
-    #${WIDGET_ID} .ps-chat-header {
-      background: white !important;
-      border-bottom: 1px solid #e5e7eb !important;
-      padding: 16px !important;
+    /* Header */
+    .chat-header {
+      padding: 16px 20px;
+      background: white;
+      border-bottom: 1px solid #f3f4f6;
     }
     
-    #${WIDGET_ID} .ps-chat-title {
-      font-size: 20px !important;
-      font-weight: 600 !important;
-      color: #1f2937 !important;
-      margin: 0 0 4px 0 !important;
-      line-height: 1.2 !important;
+    .header-content {
+      max-width: 768px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
     
-    #${WIDGET_ID} .ps-chat-subtitle {
-      font-size: 14px !important;
-      color: #6b7280 !important;
-      margin: 0 !important;
-      line-height: 1.4 !important;
+    .header-info {
+      flex: 1;
     }
     
-    #${WIDGET_ID} .ps-chat-messages {
-      flex: 1 !important;
-      overflow-y: auto !important;
-      padding: 16px !important;
-      background: #f9fafb !important;
+    .chat-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1f2937;
+      margin: 0 0 4px 0;
     }
     
-    #${WIDGET_ID} .ps-message {
-      display: flex !important;
-      margin-bottom: 16px !important;
-      animation: ps-fade-in 0.3s ease-in !important;
+    .chat-subtitle {
+      font-size: 14px;
+      color: #6b7280;
+      margin: 0;
     }
     
-    @keyframes ps-fade-in {
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .header-btn {
+      padding: 6px 12px;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    
+    .header-btn:hover {
+      background: #e5e7eb;
+      color: #1f2937;
+    }
+    
+    /* Messages */
+    .messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 20px;
+      background: white;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+      position: relative;
+    }
+    
+    .messages-inner {
+      max-width: 768px;
+      margin: 0 auto;
+    }
+    
+    .message {
+      display: flex;
+      margin-bottom: 24px;
+      animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
     
-    #${WIDGET_ID} .ps-message.ps-user {
-      justify-content: flex-end !important;
+    .message.user {
+      justify-content: flex-end;
     }
     
-    #${WIDGET_ID} .ps-message.ps-assistant {
-      justify-content: flex-start !important;
+    .message.assistant {
+      justify-content: flex-start;
     }
     
-    #${WIDGET_ID} .ps-message-bubble {
-      max-width: 80% !important;
-      padding: 12px 16px !important;
-      border-radius: 8px !important;
-      word-wrap: break-word !important;
-      overflow-wrap: break-word !important;
+    .bubble {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      word-wrap: break-word;
+      line-height: 1.6;
     }
     
-    #${WIDGET_ID} .ps-message.ps-user .ps-message-bubble {
-      background: #2563eb !important;
-      color: white !important;
+    .message.user .bubble {
+      background: #2563eb;
+      color: white;
     }
     
-    #${WIDGET_ID} .ps-message.ps-assistant .ps-message-bubble {
-      background: #f3f4f6 !important;
-      color: #1f2937 !important;
+    .message.assistant .bubble {
+      background: #f3f4f6;
+      color: #1f2937;
     }
     
-    #${WIDGET_ID} .ps-message-text {
-      font-size: 14px !important;
-      line-height: 1.6 !important;
-      white-space: pre-wrap !important;
+    .bubble p {
+      margin: 0 0 8px 0;
     }
     
-    #${WIDGET_ID} .ps-message-content p {
-      margin: 0 0 8px 0 !important;
-      line-height: 1.6 !important;
+    .bubble p:last-child {
+      margin-bottom: 0;
     }
     
-    #${WIDGET_ID} .ps-message-content p:last-child {
-      margin-bottom: 0 !important;
+    .bubble ul, .bubble ol {
+      margin: 8px 0 8px 20px;
+      padding: 0;
     }
     
-    #${WIDGET_ID} .ps-message-content ul,
-    #${WIDGET_ID} .ps-message-content ol {
-      margin: 0 0 8px 16px !important;
-      padding-left: 16px !important;
+    .bubble li {
+      margin: 4px 0;
     }
     
-    #${WIDGET_ID} .ps-message-content li {
-      margin: 4px 0 !important;
-      line-height: 1.6 !important;
+    .bubble a {
+      color: #2563eb;
+      text-decoration: underline;
+      font-weight: 500;
     }
     
-    #${WIDGET_ID} .ps-message-content a {
-      color: #2563eb !important;
-      text-decoration: underline !important;
-      font-weight: 500 !important;
-      cursor: pointer !important;
+    .message.user .bubble a {
+      color: white;
     }
     
-    #${WIDGET_ID} .ps-message-content a:hover {
-      color: #1d4ed8 !important;
+    .bubble strong {
+      font-weight: 600;
     }
     
-    #${WIDGET_ID} .ps-message-content strong {
-      font-weight: 600 !important;
+    .bubble code {
+      background: rgba(0,0,0,0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: monospace;
     }
     
-    #${WIDGET_ID} .ps-message-content code {
-      background: #e5e7eb !important;
-      padding: 2px 4px !important;
-      border-radius: 3px !important;
-      font-size: 12px !important;
-      font-family: monospace !important;
+    /* Loading */
+    .loading {
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 24px;
     }
     
-    #${WIDGET_ID} .ps-loading {
-      display: flex !important;
-      justify-content: flex-start !important;
-      margin-bottom: 16px !important;
+    .loading-bubble {
+      background: #f3f4f6;
+      padding: 12px 16px;
+      border-radius: 16px;
     }
     
-    #${WIDGET_ID} .ps-loading-bubble {
-      background: #f3f4f6 !important;
-      padding: 12px 16px !important;
-      border-radius: 8px !important;
+    .loader {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #e5e7eb;
+      border-top-color: #6b7280;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
     }
     
-    #${WIDGET_ID} .ps-loader {
-      display: inline-block !important;
-      width: 16px !important;
-      height: 16px !important;
-      border: 2px solid #e5e7eb !important;
-      border-top-color: #2563eb !important;
-      border-radius: 50% !important;
-      animation: ps-spin 0.6s linear infinite !important;
-    }
-    
-    @keyframes ps-spin {
+    @keyframes spin {
       to { transform: rotate(360deg); }
     }
     
-    #${WIDGET_ID} .ps-chat-input-wrapper {
-      border-top: 1px solid #e5e7eb !important;
-      padding: 16px !important;
-      background: white !important;
+    /* Scroll button */
+    .scroll-to-bottom {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      cursor: pointer;
+      font-size: 14px;
+      color: #6b7280;
+      transition: all 0.2s;
+      white-space: nowrap;
     }
     
-    #${WIDGET_ID} .ps-chat-form {
-      display: flex !important;
-      gap: 8px !important;
+    .scroll-to-bottom.visible {
+      display: flex;
     }
     
-    #${WIDGET_ID} .ps-chat-input {
-      flex: 1 !important;
-      padding: 10px 12px !important;
-      border: 1px solid #d1d5db !important;
-      border-radius: 6px !important;
-      font-size: 14px !important;
-      font-family: inherit !important;
-      outline: none !important;
-      transition: border-color 0.2s !important;
+    .scroll-to-bottom:hover {
+      background: #f9fafb;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      color: #1f2937;
     }
     
-    #${WIDGET_ID} .ps-chat-input:focus {
-      border-color: #2563eb !important;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+    .scroll-icon {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
     }
     
-    #${WIDGET_ID} .ps-chat-input:disabled {
-      background: #f3f4f6 !important;
-      cursor: not-allowed !important;
+    /* Input area */
+    .input-area {
+      padding: 16px 20px;
+      background: white;
+      border-top: 1px solid #f3f4f6;
     }
     
-    #${WIDGET_ID} .ps-send-button {
-      padding: 10px 16px !important;
-      background: #2563eb !important;
-      color: white !important;
-      border: none !important;
-      border-radius: 6px !important;
-      font-size: 14px !important;
-      font-weight: 500 !important;
-      cursor: pointer !important;
-      transition: background-color 0.2s !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
+    .input-container {
+      max-width: 768px;
+      margin: 0 auto;
     }
     
-    #${WIDGET_ID} .ps-send-button:hover:not(:disabled) {
-      background: #1d4ed8 !important;
+    .input-wrapper {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
     }
     
-    #${WIDGET_ID} .ps-send-button:disabled {
-      background: #9ca3af !important;
-      cursor: not-allowed !important;
+    .input-field {
+      flex: 1;
+      position: relative;
     }
     
-    #${WIDGET_ID} .ps-send-icon {
-      width: 16px !important;
-      height: 16px !important;
-      stroke: currentColor !important;
-      fill: none !important;
-      stroke-width: 2 !important;
-      stroke-linecap: round !important;
-      stroke-linejoin: round !important;
+    #message-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      font-size: 16px;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s;
+      background: white;
+      color: #1f2937;
+      resize: none;
+      max-height: 120px;
+      overflow-y: auto;
     }
-  `;
-  
-  const styleSheet = document.createElement('style');
-  styleSheet.textContent = styles;
-  document.head.appendChild(styleSheet);
-  
-  // Simple markdown parser
-  function parseMarkdown(text) {
-    let html = text;
     
-    // Links [text](url)
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    #message-input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
     
-    // Bold **text**
-    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    #message-input:disabled {
+      background: #f9fafb;
+      cursor: not-allowed;
+    }
     
-    // Code `text`
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    .send-btn {
+      width: 44px;
+      height: 44px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
     
-    // Numbered lists
-    html = html.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
-    html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ol>$&</ol>');
+    .send-btn:hover:not(:disabled) {
+      background: #1d4ed8;
+    }
     
-    // Bullet lists
-    html = html.replace(/^[-*]\s+(.+)$/gm, '<li>$1</li>');
-    html = html.replace(/(<li>.*<\/li>\n?)+/g, function(match) {
-      if (!match.includes('<ol>')) {
-        return '<ul>' + match + '</ul>';
+    .send-btn:disabled {
+      background: #e5e7eb;
+      color: #9ca3af;
+      cursor: not-allowed;
+    }
+    
+    .send-icon {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+    
+    .disclaimer {
+      text-align: center;
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 12px;
+    }
+    
+    /* Mobile */
+    @media (max-width: 768px) {
+      .chat-header {
+        padding: 12px 16px;
       }
-      return match;
-    });
-    
-    // Paragraphs
-    html = html.split('\n\n').map(para => {
-      if (!para.trim()) return '';
-      if (para.startsWith('<ul>') || para.startsWith('<ol>')) return para;
-      return '<p>' + para + '</p>';
-    }).join('');
-    
-    return html;
-  }
-  
-  // Create widget HTML
-  widget.innerHTML = `
-    <div class="ps-chat-container">
-      <div class="ps-chat-header">
-        <h2 class="ps-chat-title">Chat with us</h2>
-        <p class="ps-chat-subtitle">Ask us anything about our portable spas</p>
+      
+      .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      
+      .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+      
+      .messages-area {
+        padding: 16px 12px;
+      }
+      
+      .message {
+        margin-bottom: 16px;
+      }
+      
+      .bubble {
+        max-width: 90%;
+      }
+      
+      .input-area {
+        padding: 12px 16px;
+      }
+      
+      .input-wrapper {
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-widget">
+    <div class="chat-header">
+      <div class="header-content">
+        <div class="header-info">
+          <h2 class="chat-title">Chat with us</h2>
+          <p class="chat-subtitle" id="subtitle">Portable Spas New Zealand</p>
+        </div>
+        <div class="header-actions">
+          <button class="header-btn" onclick="clearChat()">Clear chat</button>
+          <button class="header-btn" id="change-name-btn" style="display: none;" onclick="changeName()">Change name</button>
+        </div>
       </div>
-      <div class="ps-chat-messages" id="${WIDGET_ID}-messages"></div>
-      <div class="ps-chat-input-wrapper">
-        <form class="ps-chat-form" id="${WIDGET_ID}-form">
-          <input 
-            type="text" 
-            class="ps-chat-input" 
-            id="${WIDGET_ID}-input"
-            placeholder="Type your message..."
-            autocomplete="off"
-          />
-          <button type="submit" class="ps-send-button" id="${WIDGET_ID}-send">
-            <svg class="ps-send-icon" viewBox="0 0 24 24">
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+    </div>
+    
+    <div class="messages-area" id="messages-area">
+      <div class="messages-inner" id="messages"></div>
+      
+      <button class="scroll-to-bottom" id="scroll-btn" onclick="scrollToBottom()">
+        <svg class="scroll-icon" viewBox="0 0 24 24">
+          <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+        </svg>
+        <span>New messages</span>
+      </button>
+    </div>
+    
+    <div class="input-area">
+      <div class="input-container">
+        <form class="input-wrapper" onsubmit="sendMessage(event)">
+          <div class="input-field">
+            <input 
+              type="text" 
+              id="message-input"
+              placeholder="Message Portable Spas..."
+              autocomplete="off"
+            />
+          </div>
+          <button type="submit" class="send-btn" id="send-btn">
+            <svg class="send-icon" viewBox="0 0 24 24">
+              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
             </svg>
           </button>
         </form>
+        <p class="disclaimer">AI can make mistakes. Check important info.</p>
       </div>
     </div>
-  `;
-  
-  // Get elements
-  const messagesContainer = document.getElementById(WIDGET_ID + '-messages');
-  const form = document.getElementById(WIDGET_ID + '-form');
-  const input = document.getElementById(WIDGET_ID + '-input');
-  const sendButton = document.getElementById(WIDGET_ID + '-send');
-  
-  // State
-  let messages = [
-    {
-      role: 'assistant',
-      content: 'Hello! Welcome to Portable Spas New Zealand. How can I assist you today?'
-    }
-  ];
-  let isLoading = false;
-  
-  // Render messages
-  function renderMessages() {
-    messagesContainer.innerHTML = '';
-    
-    messages.forEach((message, index) => {
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `ps-message ps-${message.role}`;
-      messageDiv.id = `${WIDGET_ID}-message-${index}`;
-      
-      const bubble = document.createElement('div');
-      bubble.className = 'ps-message-bubble';
-      
-      if (message.role === 'user') {
-        const textDiv = document.createElement('div');
-        textDiv.className = 'ps-message-text';
-        textDiv.textContent = message.content;
-        bubble.appendChild(textDiv);
-      } else {
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'ps-message-content';
-        contentDiv.innerHTML = parseMarkdown(message.content);
-        bubble.appendChild(contentDiv);
-      }
-      
-      messageDiv.appendChild(bubble);
-      messagesContainer.appendChild(messageDiv);
-    });
-    
-    if (isLoading) {
-      const loadingDiv = document.createElement('div');
-      loadingDiv.className = 'ps-loading';
-      loadingDiv.innerHTML = `
-        <div class="ps-loading-bubble">
-          <div class="ps-loader"></div>
-        </div>
-      `;
-      messagesContainer.appendChild(loadingDiv);
-    }
-    
-    // Scroll to latest message
-    setTimeout(() => {
-      const lastMessage = document.getElementById(`${WIDGET_ID}-message-${messages.length - 1}`);
-      if (lastMessage) {
-        lastMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
-  }
-  
-  // Send message
-  async function sendMessage(userMessage) {
-    if (!userMessage.trim() || isLoading) return;
-    
-    // Add user message
-    messages.push({
-      role: 'user',
-      content: userMessage
-    });
-    
-    isLoading = true;
-    input.disabled = true;
-    sendButton.disabled = true;
-    renderMessages();
-    
-    try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: messages
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to get response');
-      }
-      
-      const data = await response.json();
-      
-      messages.push({
-        role: 'assistant',
-        content: data.message
-      });
-      
-    } catch (error) {
-      console.error('Chat error:', error);
-      messages.push({
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.'
-      });
-    } finally {
-      isLoading = false;
-      input.disabled = false;
-      sendButton.disabled = false;
-      renderMessages();
-    }
-  }
-  
-  // Form submit handler
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const message = input.value;
-    input.value = '';
-    sendMessage(message);
-  });
-  
-  // Initial render
-  renderMessages();
-})();
-</script>
+  </div>
 
+  <script>
+    // Configuration
+    const API_URL = 'https://portable-spas-ai-chat.vercel.app/api/chat';
+    
+    // Storage keys
+    const STORAGE_KEY_MESSAGES = 'ps_chat_messages';
+    const STORAGE_KEY_NAME = 'ps_user_name';
+    
+    // State
+    let messages = [];
+    let userName = '';
+    let isLoading = false;
+    let askingForName = false;
+    
+    // Extract name from common phrases
+    function extractName(input) {
+      const text = input.trim();
+      
+      const patterns = [
+        /^(?:I'm|I am|Im)\s+(.+)$/i,
+        /^(?:My name is|My name's)\s+(.+)$/i,
+        /^(?:It's|Its)\s+(.+)$/i,
+        /^(?:Call me|You can call me)\s+(.+)$/i,
+        /^(?:This is)\s+(.+)$/i,
+        /^(?:Name is|Name's)\s+(.+)$/i,
+      ];
+      
+      for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (match) {
+          return match[1].trim();
+        }
+      }
+      
+      return text;
+    }
+    
+    // Load from storage
+    function loadFromStorage() {
+      try {
+        const savedMessages = localStorage.getItem(STORAGE_KEY_MESSAGES);
+        const savedName = localStorage.getItem(STORAGE_KEY_NAME);
+        
+        if (savedMessages) {
+          messages = JSON.parse(savedMessages);
+        } else if (savedName) {
+          messages = [{
+            role: 'assistant',
+            content: `Welcome back, ${savedName}! 👋\n\nHow can I assist you today?`
+          }];
+        } else {
+          messages = [{
+            role: 'assistant',
+            content: 'Hello! Welcome to Portable Spas New Zealand. 👋\n\nBefore we start, may I know your name?'
+          }];
+          askingForName = true;
+        }
+        
+        if (savedName) {
+          userName = savedName;
+        }
+      } catch (e) {
+        console.warn('Could not load from localStorage:', e);
+        messages = [{
+          role: 'assistant',
+          content: 'Hello! Welcome to Portable Spas New Zealand. 👋\n\nBefore we start, may I know your name?'
+        }];
+        askingForName = true;
+      }
+    }
+    
+    // Save to storage
+    function saveToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY_MESSAGES, JSON.stringify(messages));
+        if (userName) {
+          localStorage.setItem(STORAGE_KEY_NAME, userName);
+        }
+      } catch (e) {
+        console.warn('Could not save to localStorage:', e);
+      }
+    }
+    
+    // Simple markdown parser
+    function parseMarkdown(text) {
+      return text
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`(.+?)`/g, '<code>$1</code>')
+        .replace(/\[(.+?)\]\((.+?)\)/g, function(match, text, url) {
+          const isInternal = url.includes('portablespas.co.nz') || !url.startsWith('http');
+          const target = isInternal ? '_self' : '_blank';
+          const rel = isInternal ? '' : ' rel="noopener noreferrer"';
+          return `<a href="${url}" target="${target}"${rel}>${text}</a>`;
+        })
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/^(.+)$/gm, function(match) {
+          if (match.startsWith('<') || match === '') return match;
+          return '<p>' + match + '</p>';
+        });
+    }
+    
+    // Check scroll position
+    function checkScroll() {
+      const messagesArea = document.getElementById('messages-area');
+      const scrollBtn = document.getElementById('scroll-btn');
+      
+      if (!messagesArea || !scrollBtn) return;
+      
+      const { scrollTop, scrollHeight, clientHeight } = messagesArea;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+      
+      if (isNearBottom || messages.length <= 1) {
+        scrollBtn.classList.remove('visible');
+      } else {
+        scrollBtn.classList.add('visible');
+      }
+    }
+    
+    // Scroll to bottom
+    function scrollToBottom(behavior = 'smooth') {
+      const messagesArea = document.getElementById('messages-area');
+      if (messagesArea) {
+        messagesArea.scrollTo({
+          top: messagesArea.scrollHeight,
+          behavior: behavior
+        });
+      }
+    }
+    
+    // Render messages
+    function render() {
+      const messagesContainer = document.getElementById('messages');
+      const subtitle = document.getElementById('subtitle');
+      const changeNameBtn = document.getElementById('change-name-btn');
+      
+      // Update subtitle
+      subtitle.textContent = userName ? `Hi ${userName}!` : 'Portable Spas New Zealand';
+      
+      // Show/hide change name button
+      if (userName) {
+        changeNameBtn.style.display = 'block';
+      } else {
+        changeNameBtn.style.display = 'none';
+      }
+      
+      // Render messages
+      const messagesHtml = messages.map(msg => {
+        const cssClass = msg.role === 'user' ? 'user' : 'assistant';
+        const content = msg.role === 'user' 
+          ? msg.content.replace(/\n/g, '<br>')
+          : parseMarkdown(msg.content);
+        
+        return `
+          <div class="message ${cssClass}">
+            <div class="bubble">${content}</div>
+          </div>
+        `;
+      }).join('');
+      
+      const loadingHtml = isLoading ? `
+        <div class="loading">
+          <div class="loading-bubble">
+            <div class="loader"></div>
+          </div>
+        </div>
+      ` : '';
+      
+      messagesContainer.innerHTML = messagesHtml + loadingHtml;
+      
+      setTimeout(() => scrollToBottom('auto'), 100);
+    }
+    
+    // Send message
+    async function sendMessage(event) {
+      event.preventDefault();
+      
+      const input = document.getElementById('message-input');
+      const sendBtn = document.getElementById('send-btn');
+      
+      if (!input.value.trim() || isLoading) return;
+      
+      const userInput = input.value.trim();
+      input.value = '';
+      
+      // Handle name collection
+      if (askingForName) {
+        const extractedName = extractName(userInput);
+        userName = extractedName;
+        messages.push({ role: 'user', content: userInput });
+        messages.push({ 
+          role: 'assistant', 
+          content: `Great to meet you, ${extractedName}! 😊\n\nHow can I help you with our portable spas today?` 
+        });
+        askingForName = false;
+        saveToStorage();
+        render();
+        return;
+      }
+      
+      messages.push({ role: 'user', content: userInput });
+      isLoading = true;
+      input.disabled = true;
+      sendBtn.disabled = true;
+      render();
+      
+      try {
+        const contextualMessages = userName ? [
+          { role: 'assistant', content: `[Context: The customer's name is ${userName}. Address them naturally by name when appropriate.]` },
+          ...messages
+        ] : messages;
+        
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: contextualMessages
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to get response');
+        }
+        
+        const data = await response.json();
+        messages.push({
+          role: 'assistant',
+          content: data.message
+        });
+        
+        saveToStorage();
+      } catch (error) {
+        console.error('Error sending message:', error);
+        messages.push({
+          role: 'assistant',
+          content: 'Sorry, I encountered an error. Please try again.'
+        });
+      } finally {
+        isLoading = false;
+        input.disabled = false;
+        sendBtn.disabled = false;
+        render();
+        input.focus();
+      }
+    }
+    
+    // Clear chat
+    function clearChat() {
+      if (confirm('Are you sure you want to clear your chat history?')) {
+        localStorage.removeItem(STORAGE_KEY_MESSAGES);
+        
+        if (userName) {
+          messages = [{
+            role: 'assistant',
+            content: `Chat cleared, ${userName}! 🔄\n\nHow can I help you today?`
+          }];
+        } else {
+          messages = [{
+            role: 'assistant',
+            content: 'Hello! Welcome to Portable Spas New Zealand. 👋\n\nBefore we start, may I know your name?'
+          }];
+          askingForName = true;
+        }
+        
+        saveToStorage();
+        render();
+      }
+    }
+    
+    // Change name
+    function changeName() {
+      const newName = prompt('What would you like me to call you?', userName);
+      if (newName && newName.trim()) {
+        userName = newName.trim();
+        messages.push({
+          role: 'assistant',
+          content: `Got it! I'll call you ${userName} from now on. 😊`
+        });
+        saveToStorage();
+        render();
+      }
+    }
+    
+    // Initialize
+    loadFromStorage();
+    render();
+    
+    // Attach scroll listener
+    const messagesArea = document.getElementById('messages-area');
+    if (messagesArea) {
+      messagesArea.addEventListener('scroll', checkScroll);
+    }
+    
+    // Focus input
+    document.getElementById('message-input').focus();
+  </script>
+</body>
+</html>
