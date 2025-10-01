@@ -25,7 +25,114 @@
     box-sizing: border-box !important;
   }
   
-  /* Chat container - full width, Claude-style */
+  /* Centered landing page layout */
+  .ps-centered-container {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: white !important;
+    width: 100% !important;
+    min-height: 600px !important;
+    padding: 20px !important;
+  }
+  
+  .ps-centered-content {
+    width: 100% !important;
+    max-width: 768px !important;
+  }
+  
+  .ps-large-greeting {
+    font-size: 48px !important;
+    font-weight: 400 !important;
+    color: #1f2937 !important;
+    text-align: center !important;
+    margin-bottom: 48px !important;
+    line-height: 1.2 !important;
+  }
+  
+  @media (min-width: 768px) {
+    .ps-large-greeting {
+      font-size: 60px !important;
+    }
+  }
+  
+  .ps-centered-input-form {
+    margin-bottom: 32px !important;
+  }
+  
+  .ps-centered-input-wrapper {
+    display: flex !important;
+    gap: 12px !important;
+    align-items: center !important;
+  }
+  
+  .ps-centered-input {
+    flex: 1 !important;
+    padding: 20px 24px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 24px !important;
+    font-size: 18px !important;
+    font-family: inherit !important;
+    outline: none !important;
+    transition: all 0.2s !important;
+    background: white !important;
+    color: #1f2937 !important;
+  }
+  
+  .ps-centered-input:focus {
+    border-color: #9ca3af !important;
+    box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.1) !important;
+  }
+  
+  .ps-centered-send-btn {
+    width: 56px !important;
+    height: 56px !important;
+    background: #1f2937 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  .ps-centered-send-btn:hover:not(:disabled) {
+    background: #111827 !important;
+  }
+  
+  .ps-centered-send-btn:disabled {
+    background: #e5e7eb !important;
+    color: #9ca3af !important;
+    cursor: not-allowed !important;
+  }
+  
+  .ps-centered-actions {
+    display: flex !important;
+    gap: 8px !important;
+    justify-content: center !important;
+  }
+  
+  .ps-centered-action-btn {
+    padding: 8px 16px !important;
+    background: #f3f4f6 !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 20px !important;
+    font-size: 14px !important;
+    color: #4b5563 !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+  }
+  
+  .ps-centered-action-btn:hover {
+    background: #e5e7eb !important;
+    color: #1f2937 !important;
+  }
+  
+  /* Chat container - full width, chat view */
   .ps-chat-container {
     display: flex !important;
     flex-direction: column !important;
@@ -36,8 +143,23 @@
   }
   
   @media (max-width: 768px) {
-    .ps-chat-container {
+    .ps-chat-container, .ps-centered-container {
       min-height: 500px !important;
+    }
+    
+    .ps-large-greeting {
+      font-size: 36px !important;
+      margin-bottom: 32px !important;
+    }
+    
+    .ps-centered-input {
+      padding: 16px 20px !important;
+      font-size: 16px !important;
+    }
+    
+    .ps-centered-send-btn {
+      width: 48px !important;
+      height: 48px !important;
     }
   }
   
@@ -139,8 +261,8 @@
   }
   
   .ps-message.ps-user .ps-bubble {
-    background: #2563eb !important;
-    color: white !important;
+    background: #e5e7eb !important;
+    color: #1f2937 !important;
   }
   
   .ps-message.ps-assistant .ps-bubble {
@@ -168,13 +290,9 @@
   }
   
   .ps-bubble a {
-    color: #2563eb !important;
+    color: #1f2937 !important;
     text-decoration: underline !important;
     font-weight: 500 !important;
-  }
-  
-  .ps-message.ps-user .ps-bubble a {
-    color: white !important;
   }
   
   .ps-bubble strong {
@@ -283,8 +401,8 @@
   .ps-input {
     width: 100% !important;
     padding: 12px 16px !important;
-    border: 1px solid #e5e7eb !important;
-    border-radius: 16px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 24px !important;
     font-size: 16px !important;
     font-family: inherit !important;
     outline: none !important;
@@ -297,8 +415,8 @@
   }
   
   .ps-input:focus {
-    border-color: #2563eb !important;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+    border-color: #9ca3af !important;
+    box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.1) !important;
   }
   
   .ps-input:disabled {
@@ -309,10 +427,10 @@
   .ps-send-btn {
     width: 44px !important;
     height: 44px !important;
-    background: #2563eb !important;
+    background: #1f2937 !important;
     color: white !important;
     border: none !important;
-    border-radius: 12px !important;
+    border-radius: 50% !important;
     cursor: pointer !important;
     transition: all 0.2s !important;
     flex-shrink: 0 !important;
@@ -322,7 +440,7 @@
   }
   
   .ps-send-btn:hover:not(:disabled) {
-    background: #1d4ed8 !important;
+    background: #111827 !important;
   }
   
   .ps-send-btn:disabled {
@@ -536,7 +654,61 @@
   // Render messages
   function render() {
     const container = document.getElementById('ps-native-chat-root');
+    const showCenteredLayout = messages.length <= 1;
     
+    if (showCenteredLayout) {
+      // Centered landing page layout
+      const greeting = userName ? `Hey there, ${userName}` : 'Hey there';
+      const placeholder = askingForName ? "What's your name?" : "How can I help you today?";
+      const changeNameBtn = userName ? `
+        <button class="ps-centered-action-btn" onclick="psChat.changeName()">Change name</button>
+      ` : '';
+      
+      container.innerHTML = `
+        <div class="ps-centered-container">
+          <div class="ps-centered-content">
+            <h1 class="ps-large-greeting">${greeting}</h1>
+            
+            <form class="ps-centered-input-form" onsubmit="psChat.sendMessage(event)">
+              <div class="ps-centered-input-wrapper">
+                <input 
+                  type="text" 
+                  class="ps-centered-input" 
+                  id="ps-chat-input"
+                  placeholder="${placeholder}"
+                  ${isLoading ? 'disabled' : ''}
+                />
+                <button 
+                  type="submit" 
+                  class="ps-centered-send-btn"
+                  ${isLoading ? 'disabled' : ''}
+                >
+                  ${isLoading ? '<div class="ps-loader"></div>' : `
+                    <svg class="ps-send-icon" viewBox="0 0 24 24" style="width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2;">
+                      <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                    </svg>
+                  `}
+                </button>
+              </div>
+            </form>
+            
+            <div class="ps-centered-actions">
+              <button class="ps-centered-action-btn" onclick="psChat.clearChat()">Clear chat</button>
+              ${changeNameBtn}
+            </div>
+          </div>
+        </div>
+      `;
+      
+      const input = document.getElementById('ps-chat-input');
+      if (input && !isLoading) {
+        input.focus();
+      }
+      
+      return;
+    }
+    
+    // Normal chat view
     const messagesHtml = messages.map((msg, index) => {
       const cssClass = msg.role === 'user' ? 'ps-user' : 'ps-assistant';
       const content = msg.role === 'user' 
