@@ -1,14 +1,14 @@
 # 📦 Embed File Version History
 
-## Current Version: v2.4 (Latest) - Claude Style
+## Current Version: v2.5 (Latest) - Centered Landing Layout
 
 **File:** `SHOPIFY-NATIVE-EMBED.html` & `public/chat-widget.html`  
 **Last Updated:** October 2025  
-**Status:** ✅ Up-to-date with main app (Claude-style interface)
+**Status:** ✅ Up-to-date with main app (Centered Gemini-style interface)
 
 ---
 
-## ✅ Current Features (v2.4)
+## ✅ Current Features (v2.5)
 
 All features from the main Next.js app are included:
 
@@ -39,21 +39,31 @@ All features from the main Next.js app are included:
   - "Scroll to bottom" button when scrolled up
   - Natural, Claude-style behavior
 
-### 🎨 UI/UX (Claude Style)
-- ✅ **Claude-Inspired Layout**
-  - Input visible and centered on load (not below fold)
+### 🎨 UI/UX (Centered Landing Style)
+- ✅ **Centered Landing Page** (shows when ≤1 message)
+  - Large "Hey there, Name" greeting (48-60px)
+  - Greeting centered vertically on screen
+  - Prominent input field centered below greeting
+  - Rounded input (24px radius)
+  - Round send button (56px, gray-800)
+  - Action buttons below input
+  - Smooth transition to chat view after first message
+  
+- ✅ **Chat View** (shows after first message)
   - Fixed header with border-bottom
   - Messages centered in container (max 768px width)
   - Rounder message bubbles (16px radius)
-  - Blue user messages, gray assistant messages
+  - All gray color scheme (no blue)
+  - Gray user messages (#e5e7eb), light gray assistant (#f3f4f6)
+  - Gray send button (rounded-full)
   - White background, minimalist design
   - Responsive mobile/desktop
   
-- ✅ **Professional Input Area**
-  - Larger, prominent input field
-  - "Message Portable Spas..." placeholder
-  - Send button with icon (44x44px)
-  - Disclaimer text: "AI can make mistakes. Check important info."
+- ✅ **Consistent Styling**
+  - Rounded inputs (24px radius)
+  - Gray underlined links
+  - Send button: 44x44px (chat), 56x56px (landing)
+  - Disclaimer text in chat view
   - Better spacing and visual hierarchy
 
 ### 🔌 Integration
@@ -322,6 +332,20 @@ Before deploying to production:
 
 ## 📜 Version History
 
+### v2.5 (October 2025) - Centered Landing Layout
+**Changes:**
+- ✅ **NEW:** Centered landing page layout (shows when ≤1 message)
+- ✅ Large "Hey there, Name" greeting centered on screen
+- ✅ Prominent centered input field on initial load
+- ✅ Changed all colors to gray theme (removed blue)
+- ✅ Gray user messages (#e5e7eb), gray assistant messages (#f3f4f6)
+- ✅ Gray send button (#1f2937) with rounded-full style
+- ✅ Rounded inputs (24px radius) throughout
+- ✅ Gray underlined links (#1f2937)
+- ✅ Smooth transition from landing to chat view
+- ✅ Matches Gemini-style centered interface
+- ✅ Mobile responsive with adjusted sizing
+
 ### v2.4 (October 2025) - Claude Style Update
 **Changes:**
 - ✅ Redesigned layout to match Claude AI interface
@@ -366,7 +390,9 @@ Before deploying to production:
 **Current Status:** ✅ Fully tested and production-ready
 
 The embed file is:
-- ✅ Feature-complete with Claude-style design
+- ✅ Feature-complete with centered landing layout
+- ✅ Gray color scheme (no blue)
+- ✅ Dynamic layout switching (landing ↔ chat)
 - ✅ Mobile-optimized  
 - ✅ Cross-browser compatible
 - ✅ SEO-friendly
