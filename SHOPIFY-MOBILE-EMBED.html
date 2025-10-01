@@ -1,0 +1,101 @@
+<!-- MOBILE-OPTIMIZED SHOPIFY CHAT EMBED -->
+<!-- Copy this entire code into your Shopify page -->
+
+<style>
+  /* Mobile-First Responsive Chat Container */
+  .ps-chat-container {
+    width: 100%;
+    margin: 0 auto;
+    padding: 0;
+  }
+  
+  /* Desktop: Standard width with padding */
+  @media (min-width: 769px) {
+    .ps-chat-container {
+      max-width: 1200px;
+      padding: 20px;
+    }
+  }
+  
+  /* Mobile: Full viewport */
+  @media (max-width: 768px) {
+    .ps-chat-container {
+      padding: 10px;
+    }
+  }
+  
+  /* Responsive iFrame */
+  .ps-chat-iframe {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  /* Desktop height */
+  @media (min-width: 769px) {
+    .ps-chat-iframe {
+      height: 700px;
+    }
+  }
+  
+  /* Tablet height */
+  @media (min-width: 481px) and (max-width: 768px) {
+    .ps-chat-iframe {
+      height: 600px;
+      border-radius: 12px;
+    }
+  }
+  
+  /* Mobile height - takes most of viewport */
+  @media (max-width: 480px) {
+    .ps-chat-iframe {
+      height: calc(100vh - 100px);
+      min-height: 500px;
+      border-radius: 8px;
+    }
+    
+    /* Remove borders on very small screens for more space */
+    .ps-chat-container {
+      padding: 5px;
+    }
+    
+    .ps-chat-iframe {
+      border-left: none;
+      border-right: none;
+    }
+  }
+  
+  /* Landscape mobile optimization */
+  @media (max-width: 768px) and (orientation: landscape) {
+    .ps-chat-iframe {
+      height: calc(100vh - 60px);
+    }
+  }
+  
+  /* Ensure touch-friendly on all devices */
+  .ps-chat-iframe {
+    -webkit-overflow-scrolling: touch;
+    touch-action: manipulation;
+  }
+</style>
+
+<div class="ps-chat-container">
+  <iframe 
+    src="https://portable-spas-ai-chat.vercel.app" 
+    class="ps-chat-iframe"
+    title="Portable Spas Customer Service Chat"
+    allow="clipboard-read; clipboard-write"
+    loading="eager"
+    scrolling="no"
+  ></iframe>
+</div>
+
+<!-- Optional: Loading indicator while iframe loads -->
+<script>
+  // Smooth fade-in when iframe loads
+  document.querySelector('.ps-chat-iframe').addEventListener('load', function() {
+    this.style.opacity = '1';
+  });
+</script>
+

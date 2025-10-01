@@ -1,0 +1,773 @@
+<!-- NATIVE SHOPIFY CHAT EMBED (NO IFRAME) -->
+<!-- This embeds directly into your Shopify page - feels completely native -->
+<!-- Copy this entire code into your Shopify page -->
+
+<div id="ps-native-chat-root"></div>
+
+<style>
+  /* Aggressive CSS reset for chat container */
+  #ps-native-chat-root {
+    all: initial;
+    display: block !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+    color: #1f2937 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+  }
+  
+  #ps-native-chat-root *,
+  #ps-native-chat-root *::before,
+  #ps-native-chat-root *::after {
+    box-sizing: border-box !important;
+  }
+  
+  /* Chat container - responsive, Claude-style */
+  .ps-chat-wrapper {
+    width: 100% !important;
+    max-width: 800px !important;
+    margin: 0 auto !important;
+    background: white !important;
+    padding: 0 !important;
+  }
+  
+  .ps-chat-container {
+    display: flex !important;
+    flex-direction: column !important;
+    background: white !important;
+    width: 100% !important;
+    position: relative !important;
+  }
+  
+  /* Responsive height */
+  @media (min-width: 769px) {
+    .ps-chat-container {
+      min-height: 600px !important;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .ps-chat-container {
+      min-height: 500px !important;
+    }
+  }
+  
+  /* Header - more compact like Claude */
+  .ps-chat-header {
+    padding: 24px 20px 16px 20px !important;
+    background: white !important;
+  }
+  
+  .ps-chat-title {
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    color: #1f2937 !important;
+    margin: 0 0 4px 0 !important;
+  }
+  
+  .ps-chat-subtitle {
+    font-size: 14px !important;
+    color: #6b7280 !important;
+    margin: 0 0 16px 0 !important;
+  }
+  
+  .ps-header-actions {
+    display: flex !important;
+    gap: 8px !important;
+    margin-top: 8px !important;
+  }
+  
+  .ps-header-btn {
+    padding: 4px 12px !important;
+    background: #f3f4f6 !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 6px !important;
+    font-size: 12px !important;
+    color: #6b7280 !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+  }
+  
+  .ps-header-btn:hover {
+    background: #e5e7eb !important;
+    color: #1f2937 !important;
+  }
+  
+  /* Messages area - scrolls naturally */
+  .ps-messages {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    padding: 0 20px 20px 20px !important;
+    background: white !important;
+    -webkit-overflow-scrolling: touch !important;
+    scroll-behavior: smooth !important;
+  }
+  
+  .ps-message {
+    display: flex !important;
+    margin-bottom: 16px !important;
+    animation: ps-fade-in 0.3s ease-in !important;
+  }
+  
+  @keyframes ps-fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .ps-message.ps-user {
+    justify-content: flex-end !important;
+  }
+  
+  .ps-message.ps-assistant {
+    justify-content: flex-start !important;
+  }
+  
+  .ps-bubble {
+    max-width: 80% !important;
+    padding: 12px 16px !important;
+    border-radius: 12px !important;
+    word-wrap: break-word !important;
+    line-height: 1.6 !important;
+  }
+  
+  .ps-message.ps-user .ps-bubble {
+    background: #2563eb !important;
+    color: white !important;
+  }
+  
+  .ps-message.ps-assistant .ps-bubble {
+    background: #f3f4f6 !important;
+    color: #1f2937 !important;
+  }
+  
+  /* Markdown styling */
+  .ps-bubble p {
+    margin: 0 0 8px 0 !important;
+  }
+  
+  .ps-bubble p:last-child {
+    margin-bottom: 0 !important;
+  }
+  
+  .ps-bubble ul,
+  .ps-bubble ol {
+    margin: 8px 0 8px 20px !important;
+    padding: 0 !important;
+  }
+  
+  .ps-bubble li {
+    margin: 4px 0 !important;
+  }
+  
+  .ps-bubble a {
+    color: #2563eb !important;
+    text-decoration: underline !important;
+    font-weight: 500 !important;
+  }
+  
+  .ps-message.ps-user .ps-bubble a {
+    color: white !important;
+  }
+  
+  .ps-bubble strong {
+    font-weight: 600 !important;
+  }
+  
+  .ps-bubble code {
+    background: rgba(0,0,0,0.1) !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+    font-family: monospace !important;
+  }
+  
+  /* Loading indicator */
+  .ps-loading {
+    display: flex !important;
+    justify-content: flex-start !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .ps-loading-bubble {
+    background: #f3f4f6 !important;
+    padding: 12px 16px !important;
+    border-radius: 12px !important;
+  }
+  
+  .ps-loader {
+    display: inline-block !important;
+    width: 20px !important;
+    height: 20px !important;
+    border: 3px solid #e5e7eb !important;
+    border-top-color: #2563eb !important;
+    border-radius: 50% !important;
+    animation: ps-spin 0.6s linear infinite !important;
+  }
+  
+  @keyframes ps-spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  /* Scroll to bottom button - Claude style */
+  .ps-scroll-to-bottom {
+    position: sticky !important;
+    bottom: 100px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 10 !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 8px 16px !important;
+    background: white !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 20px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    color: #6b7280 !important;
+    transition: all 0.2s !important;
+    white-space: nowrap !important;
+  }
+  
+  .ps-scroll-to-bottom.ps-visible {
+    display: flex !important;
+  }
+  
+  .ps-scroll-to-bottom:hover {
+    background: #f9fafb !important;
+    border-color: #9ca3af !important;
+    color: #1f2937 !important;
+  }
+  
+  .ps-scroll-icon {
+    width: 16px !important;
+    height: 16px !important;
+    stroke: currentColor !important;
+    fill: none !important;
+    stroke-width: 2 !important;
+  }
+  
+  /* Input area - closer to messages */
+  .ps-input-area {
+    padding: 0 20px 20px 20px !important;
+    background: white !important;
+    border-top: 1px solid #e5e7eb !important;
+    padding-top: 16px !important;
+    margin-top: 8px !important;
+  }
+  
+  .ps-input-wrapper {
+    display: flex !important;
+    gap: 8px !important;
+    align-items: flex-end !important;
+  }
+  
+  .ps-input {
+    flex: 1 !important;
+    padding: 12px 16px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 12px !important;
+    font-size: 16px !important;
+    font-family: inherit !important;
+    outline: none !important;
+    transition: border-color 0.2s !important;
+    background: white !important;
+    color: #1f2937 !important;
+    resize: none !important;
+    max-height: 120px !important;
+    overflow-y: auto !important;
+  }
+  
+  .ps-input:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+  }
+  
+  .ps-input:disabled {
+    background: #f9fafb !important;
+    cursor: not-allowed !important;
+  }
+  
+  .ps-send-btn {
+    padding: 12px 24px !important;
+    background: #2563eb !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    white-space: nowrap !important;
+  }
+  
+  .ps-send-btn:hover:not(:disabled) {
+    background: #1d4ed8 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+  }
+  
+  .ps-send-btn:active:not(:disabled) {
+    transform: translateY(0) !important;
+  }
+  
+  .ps-send-btn:disabled {
+    background: #9ca3af !important;
+    cursor: not-allowed !important;
+  }
+  
+  .ps-send-icon {
+    width: 18px !important;
+    height: 18px !important;
+    stroke: currentColor !important;
+    fill: none !important;
+    stroke-width: 2 !important;
+  }
+  
+  /* Mobile adjustments */
+  @media (max-width: 480px) {
+    .ps-chat-title {
+      font-size: 20px !important;
+    }
+    
+    .ps-send-btn {
+      padding: 12px 16px !important;
+    }
+    
+    .ps-send-btn span {
+      display: none !important;
+    }
+  }
+</style>
+
+<script>
+(function() {
+  'use strict';
+  
+  const API_URL = 'https://portable-spas-ai-chat.vercel.app/api/chat';
+  const root = document.getElementById('ps-native-chat-root');
+  const STORAGE_KEY_MESSAGES = 'ps_chat_messages';
+  const STORAGE_KEY_NAME = 'ps_user_name';
+  
+  // LocalStorage helpers
+  function saveToStorage() {
+    try {
+      localStorage.setItem(STORAGE_KEY_MESSAGES, JSON.stringify(messages));
+      if (userName) {
+        localStorage.setItem(STORAGE_KEY_NAME, userName);
+      }
+    } catch (e) {
+      console.warn('Could not save to localStorage:', e);
+    }
+  }
+  
+  function loadFromStorage() {
+    try {
+      const savedMessages = localStorage.getItem(STORAGE_KEY_MESSAGES);
+      const savedName = localStorage.getItem(STORAGE_KEY_NAME);
+      
+      if (savedMessages) {
+        messages = JSON.parse(savedMessages);
+      }
+      if (savedName) {
+        userName = savedName;
+      }
+    } catch (e) {
+      console.warn('Could not load from localStorage:', e);
+    }
+  }
+  
+  function clearStorage() {
+    try {
+      localStorage.removeItem(STORAGE_KEY_MESSAGES);
+      localStorage.removeItem(STORAGE_KEY_NAME);
+    } catch (e) {
+      console.warn('Could not clear localStorage:', e);
+    }
+  }
+  
+  // Extract name from common phrases
+  function extractName(input) {
+    const text = input.trim();
+    
+    // Common patterns people use when introducing themselves
+    const patterns = [
+      /^(?:I'm|I am|Im)\s+(.+)$/i,
+      /^(?:My name is|My name's)\s+(.+)$/i,
+      /^(?:It's|Its)\s+(.+)$/i,
+      /^(?:Call me|You can call me)\s+(.+)$/i,
+      /^(?:This is)\s+(.+)$/i,
+      /^(?:Name is|Name's)\s+(.+)$/i,
+    ];
+    
+    // Try each pattern
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match) {
+        return match[1].trim();
+      }
+    }
+    
+    // If no pattern matches, assume the whole input is the name
+    return text;
+  }
+  
+  // Check if URL is internal (portablespas.co.nz)
+  function isInternalLink(url) {
+    try {
+      const urlObj = new URL(url, window.location.href);
+      return urlObj.hostname.includes('portablespas.co.nz');
+    } catch (e) {
+      // If URL parsing fails, assume it's a relative URL (internal)
+      return !url.startsWith('http');
+    }
+  }
+  
+  // Simple markdown parser
+  function parseMarkdown(text) {
+    let html = text;
+    
+    // Handle markdown links with smart target detection
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, linkText, url) => {
+      const isInternal = isInternalLink(url);
+      const target = isInternal ? '_self' : '_blank';
+      const rel = isInternal ? '' : ' rel="noopener"';
+      return `<a href="${url}" target="${target}"${rel}>${linkText}</a>`;
+    });
+    
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    // Lists
+    const lines = html.split('\n');
+    let inList = false;
+    let listType = null;
+    let result = [];
+    
+    lines.forEach(line => {
+      const olMatch = line.match(/^\d+\.\s+(.+)$/);
+      const ulMatch = line.match(/^[-*]\s+(.+)$/);
+      
+      if (olMatch) {
+        if (!inList || listType !== 'ol') {
+          if (inList) result.push(`</${listType}>`);
+          result.push('<ol>');
+          inList = true;
+          listType = 'ol';
+        }
+        result.push(`<li>${olMatch[1]}</li>`);
+      } else if (ulMatch) {
+        if (!inList || listType !== 'ul') {
+          if (inList) result.push(`</${listType}>`);
+          result.push('<ul>');
+          inList = true;
+          listType = 'ul';
+        }
+        result.push(`<li>${ulMatch[1]}</li>`);
+      } else {
+        if (inList) {
+          result.push(`</${listType}>`);
+          inList = false;
+          listType = null;
+        }
+        if (line.trim()) {
+          result.push(`<p>${line}</p>`);
+        }
+      }
+    });
+    
+    if (inList) result.push(`</${listType}>`);
+    
+    return result.join('');
+  }
+  
+  // State
+  let messages = [];
+  let userName = '';
+  let isLoading = false;
+  let askingForName = false;
+  
+  // Load saved data
+  loadFromStorage();
+  
+  // Initialize messages if empty
+  if (messages.length === 0) {
+    if (!userName) {
+      // Ask for name first
+      messages = [{
+        role: 'assistant',
+        content: 'Hello! Welcome to Portable Spas New Zealand. 👋\n\nBefore we start, may I know your name?'
+      }];
+      askingForName = true;
+    } else {
+      // Welcome back message
+      messages = [{
+        role: 'assistant',
+        content: `Welcome back, ${userName}! 👋\n\nHow can I assist you today?`
+      }];
+    }
+  }
+  
+  // Create HTML structure
+  root.innerHTML = `
+    <div class="ps-chat-wrapper">
+      <div class="ps-chat-container">
+        <div class="ps-chat-header">
+          <h2 class="ps-chat-title">Chat with us</h2>
+          <p class="ps-chat-subtitle" id="ps-subtitle">Ask us anything about our portable spas</p>
+          <div class="ps-header-actions">
+            <button class="ps-header-btn" id="ps-clear-btn">Clear chat</button>
+            <button class="ps-header-btn" id="ps-change-name-btn" style="display: none;">Change name</button>
+          </div>
+        </div>
+        <div class="ps-messages" id="ps-messages">
+          <button class="ps-scroll-to-bottom" id="ps-scroll-btn">
+            <svg class="ps-scroll-icon" viewBox="0 0 24 24">
+              <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+            </svg>
+            <span>New messages</span>
+          </button>
+        </div>
+        <div class="ps-input-area">
+          <form class="ps-input-wrapper" id="ps-form">
+            <input 
+              type="text"
+              class="ps-input"
+              id="ps-input"
+              placeholder="Type your message..."
+              autocomplete="off"
+            />
+            <button type="submit" class="ps-send-btn" id="ps-send">
+              <svg class="ps-send-icon" viewBox="0 0 24 24">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+              <span>Send</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  const messagesEl = document.getElementById('ps-messages');
+  const scrollBtn = document.getElementById('ps-scroll-btn');
+  const formEl = document.getElementById('ps-form');
+  const inputEl = document.getElementById('ps-input');
+  const sendBtn = document.getElementById('ps-send');
+  const subtitleEl = document.getElementById('ps-subtitle');
+  const clearBtn = document.getElementById('ps-clear-btn');
+  const changeNameBtn = document.getElementById('ps-change-name-btn');
+  
+  // Check if scrolled to bottom
+  function isScrolledToBottom() {
+    const threshold = 150; // pixels from bottom
+    return messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < threshold;
+  }
+  
+  // Scroll to bottom smoothly
+  function scrollToBottom() {
+    messagesEl.scrollTo({
+      top: messagesEl.scrollHeight,
+      behavior: 'smooth'
+    });
+  }
+  
+  // Update scroll button visibility
+  function updateScrollButton() {
+    if (isScrolledToBottom()) {
+      scrollBtn.classList.remove('ps-visible');
+    } else if (messages.length > 1) {
+      scrollBtn.classList.add('ps-visible');
+    }
+  }
+  
+  // Render messages
+  function render(autoScroll = true) {
+    // Update subtitle with user name
+    if (userName) {
+      subtitleEl.textContent = `Hi ${userName}! Ask us anything about our portable spas`;
+      changeNameBtn.style.display = 'block';
+    } else {
+      subtitleEl.textContent = 'Ask us anything about our portable spas';
+      changeNameBtn.style.display = 'none';
+    }
+    
+    // Save scroll button
+    const scrollBtnHTML = scrollBtn.outerHTML;
+    
+    // Clear and render messages
+    messagesEl.innerHTML = '';
+    
+    messages.forEach((msg, idx) => {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `ps-message ps-${msg.role}`;
+      msgDiv.id = `ps-msg-${idx}`;
+      
+      const bubble = document.createElement('div');
+      bubble.className = 'ps-bubble';
+      
+      if (msg.role === 'user') {
+        bubble.textContent = msg.content;
+      } else {
+        bubble.innerHTML = parseMarkdown(msg.content);
+      }
+      
+      msgDiv.appendChild(bubble);
+      messagesEl.appendChild(msgDiv);
+    });
+    
+    if (isLoading) {
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'ps-loading';
+      loadingDiv.innerHTML = '<div class="ps-loading-bubble"><div class="ps-loader"></div></div>';
+      messagesEl.appendChild(loadingDiv);
+    }
+    
+    // Re-add scroll button
+    messagesEl.insertAdjacentHTML('afterbegin', scrollBtnHTML);
+    
+    // Re-attach scroll button listener
+    const newScrollBtn = document.getElementById('ps-scroll-btn');
+    newScrollBtn.addEventListener('click', scrollToBottom);
+    
+    // Auto scroll to bottom
+    if (autoScroll) {
+      setTimeout(scrollToBottom, 100);
+    }
+    
+    updateScrollButton();
+  }
+  
+  // Send message
+  async function sendMessage(text) {
+    if (!text.trim() || isLoading) return;
+    
+    const userInput = text.trim();
+    
+    // Handle name collection
+    if (askingForName) {
+      userName = extractName(userInput);
+      messages.push({ role: 'user', content: userInput });
+      messages.push({ 
+        role: 'assistant', 
+        content: `Great to meet you, ${userName}! 😊\n\nHow can I help you with our portable spas today?` 
+      });
+      askingForName = false;
+      saveToStorage();
+      render();
+      inputEl.focus();
+      return;
+    }
+    
+    messages.push({ role: 'user', content: userInput });
+    isLoading = true;
+    inputEl.disabled = true;
+    sendBtn.disabled = true;
+    render();
+    
+    try {
+      // Add system context with user's name if available
+      const contextualMessages = userName ? [
+        { role: 'assistant', content: `[Context: The customer's name is ${userName}. Address them naturally by name when appropriate.]` },
+        ...messages
+      ] : messages;
+      
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: contextualMessages })
+      });
+      
+      if (!res.ok) throw new Error('Failed to get response');
+      
+      const data = await res.json();
+      messages.push({ role: 'assistant', content: data.message });
+      saveToStorage();
+      
+    } catch (error) {
+      console.error('Chat error:', error);
+      messages.push({ 
+        role: 'assistant', 
+        content: 'Sorry, I encountered an error. Please try again.' 
+      });
+    } finally {
+      isLoading = false;
+      inputEl.disabled = false;
+      sendBtn.disabled = false;
+      render();
+      inputEl.focus();
+    }
+  }
+  
+  // Clear chat handler
+  clearBtn.addEventListener('click', () => {
+    if (confirm('Are you sure you want to clear your chat history?')) {
+      messages = [];
+      clearStorage();
+      
+      if (userName) {
+        messages = [{
+          role: 'assistant',
+          content: `Chat cleared, ${userName}! 🔄\n\nHow can I help you today?`
+        }];
+      } else {
+        messages = [{
+          role: 'assistant',
+          content: 'Hello! Welcome to Portable Spas New Zealand. 👋\n\nBefore we start, may I know your name?'
+        }];
+        askingForName = true;
+      }
+      
+      saveToStorage();
+      render();
+      inputEl.focus();
+    }
+  });
+  
+  // Change name handler
+  changeNameBtn.addEventListener('click', () => {
+    const newName = prompt('What would you like me to call you?', userName);
+    if (newName && newName.trim()) {
+      const oldName = userName;
+      userName = newName.trim();
+      messages.push({
+        role: 'assistant',
+        content: `Got it! I'll call you ${userName} from now on. 😊`
+      });
+      saveToStorage();
+      render();
+    }
+  });
+  
+  // Scroll detection
+  messagesEl.addEventListener('scroll', () => {
+    updateScrollButton();
+  });
+  
+  // Scroll button handler
+  scrollBtn.addEventListener('click', scrollToBottom);
+  
+  // Form handler
+  formEl.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = inputEl.value;
+    inputEl.value = '';
+    sendMessage(text);
+  });
+  
+  // Initial render
+  render();
+  inputEl.focus();
+})();
+</script>
+

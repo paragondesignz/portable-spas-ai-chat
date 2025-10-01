@@ -1,0 +1,449 @@
+<!-- Portable Spas Chat Widget - Embed this anywhere -->
+<!-- Production API URL configured - ready to embed! -->
+<div id="portable-spas-chat-widget" data-api-url="https://portable-spas-ai-chat.vercel.app/api/chat"></div>
+
+<script>
+(function() {
+  'use strict';
+  
+  // Configuration
+  const WIDGET_ID = 'portable-spas-chat-widget';
+  const widget = document.getElementById(WIDGET_ID);
+  const API_URL = widget.getAttribute('data-api-url') || '/api/chat';
+  
+  // Inject styles with aggressive overrides
+  const styles = `
+    #${WIDGET_ID} {
+      all: initial;
+      display: block !important;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+      font-size: 14px !important;
+      line-height: 1.5 !important;
+      color: #1f2937 !important;
+      box-sizing: border-box !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    
+    #${WIDGET_ID} *, 
+    #${WIDGET_ID} *::before, 
+    #${WIDGET_ID} *::after {
+      box-sizing: border-box !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    
+    #${WIDGET_ID} .ps-chat-container {
+      display: flex !important;
+      flex-direction: column !important;
+      height: 600px !important;
+      max-height: 80vh !important;
+      background: white !important;
+      border: 1px solid #e5e7eb !important;
+      border-radius: 8px !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+      overflow: hidden !important;
+    }
+    
+    #${WIDGET_ID} .ps-chat-header {
+      background: white !important;
+      border-bottom: 1px solid #e5e7eb !important;
+      padding: 16px !important;
+    }
+    
+    #${WIDGET_ID} .ps-chat-title {
+      font-size: 20px !important;
+      font-weight: 600 !important;
+      color: #1f2937 !important;
+      margin: 0 0 4px 0 !important;
+      line-height: 1.2 !important;
+    }
+    
+    #${WIDGET_ID} .ps-chat-subtitle {
+      font-size: 14px !important;
+      color: #6b7280 !important;
+      margin: 0 !important;
+      line-height: 1.4 !important;
+    }
+    
+    #${WIDGET_ID} .ps-chat-messages {
+      flex: 1 !important;
+      overflow-y: auto !important;
+      padding: 16px !important;
+      background: #f9fafb !important;
+    }
+    
+    #${WIDGET_ID} .ps-message {
+      display: flex !important;
+      margin-bottom: 16px !important;
+      animation: ps-fade-in 0.3s ease-in !important;
+    }
+    
+    @keyframes ps-fade-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    #${WIDGET_ID} .ps-message.ps-user {
+      justify-content: flex-end !important;
+    }
+    
+    #${WIDGET_ID} .ps-message.ps-assistant {
+      justify-content: flex-start !important;
+    }
+    
+    #${WIDGET_ID} .ps-message-bubble {
+      max-width: 80% !important;
+      padding: 12px 16px !important;
+      border-radius: 8px !important;
+      word-wrap: break-word !important;
+      overflow-wrap: break-word !important;
+    }
+    
+    #${WIDGET_ID} .ps-message.ps-user .ps-message-bubble {
+      background: #2563eb !important;
+      color: white !important;
+    }
+    
+    #${WIDGET_ID} .ps-message.ps-assistant .ps-message-bubble {
+      background: #f3f4f6 !important;
+      color: #1f2937 !important;
+    }
+    
+    #${WIDGET_ID} .ps-message-text {
+      font-size: 14px !important;
+      line-height: 1.6 !important;
+      white-space: pre-wrap !important;
+    }
+    
+    #${WIDGET_ID} .ps-message-content p {
+      margin: 0 0 8px 0 !important;
+      line-height: 1.6 !important;
+    }
+    
+    #${WIDGET_ID} .ps-message-content p:last-child {
+      margin-bottom: 0 !important;
+    }
+    
+    #${WIDGET_ID} .ps-message-content ul,
+    #${WIDGET_ID} .ps-message-content ol {
+      margin: 0 0 8px 16px !important;
+      padding-left: 16px !important;
+    }
+    
+    #${WIDGET_ID} .ps-message-content li {
+      margin: 4px 0 !important;
+      line-height: 1.6 !important;
+    }
+    
+    #${WIDGET_ID} .ps-message-content a {
+      color: #2563eb !important;
+      text-decoration: underline !important;
+      font-weight: 500 !important;
+      cursor: pointer !important;
+    }
+    
+    #${WIDGET_ID} .ps-message-content a:hover {
+      color: #1d4ed8 !important;
+    }
+    
+    #${WIDGET_ID} .ps-message-content strong {
+      font-weight: 600 !important;
+    }
+    
+    #${WIDGET_ID} .ps-message-content code {
+      background: #e5e7eb !important;
+      padding: 2px 4px !important;
+      border-radius: 3px !important;
+      font-size: 12px !important;
+      font-family: monospace !important;
+    }
+    
+    #${WIDGET_ID} .ps-loading {
+      display: flex !important;
+      justify-content: flex-start !important;
+      margin-bottom: 16px !important;
+    }
+    
+    #${WIDGET_ID} .ps-loading-bubble {
+      background: #f3f4f6 !important;
+      padding: 12px 16px !important;
+      border-radius: 8px !important;
+    }
+    
+    #${WIDGET_ID} .ps-loader {
+      display: inline-block !important;
+      width: 16px !important;
+      height: 16px !important;
+      border: 2px solid #e5e7eb !important;
+      border-top-color: #2563eb !important;
+      border-radius: 50% !important;
+      animation: ps-spin 0.6s linear infinite !important;
+    }
+    
+    @keyframes ps-spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    #${WIDGET_ID} .ps-chat-input-wrapper {
+      border-top: 1px solid #e5e7eb !important;
+      padding: 16px !important;
+      background: white !important;
+    }
+    
+    #${WIDGET_ID} .ps-chat-form {
+      display: flex !important;
+      gap: 8px !important;
+    }
+    
+    #${WIDGET_ID} .ps-chat-input {
+      flex: 1 !important;
+      padding: 10px 12px !important;
+      border: 1px solid #d1d5db !important;
+      border-radius: 6px !important;
+      font-size: 14px !important;
+      font-family: inherit !important;
+      outline: none !important;
+      transition: border-color 0.2s !important;
+    }
+    
+    #${WIDGET_ID} .ps-chat-input:focus {
+      border-color: #2563eb !important;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+    }
+    
+    #${WIDGET_ID} .ps-chat-input:disabled {
+      background: #f3f4f6 !important;
+      cursor: not-allowed !important;
+    }
+    
+    #${WIDGET_ID} .ps-send-button {
+      padding: 10px 16px !important;
+      background: #2563eb !important;
+      color: white !important;
+      border: none !important;
+      border-radius: 6px !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      cursor: pointer !important;
+      transition: background-color 0.2s !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    #${WIDGET_ID} .ps-send-button:hover:not(:disabled) {
+      background: #1d4ed8 !important;
+    }
+    
+    #${WIDGET_ID} .ps-send-button:disabled {
+      background: #9ca3af !important;
+      cursor: not-allowed !important;
+    }
+    
+    #${WIDGET_ID} .ps-send-icon {
+      width: 16px !important;
+      height: 16px !important;
+      stroke: currentColor !important;
+      fill: none !important;
+      stroke-width: 2 !important;
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+    }
+  `;
+  
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = styles;
+  document.head.appendChild(styleSheet);
+  
+  // Simple markdown parser
+  function parseMarkdown(text) {
+    let html = text;
+    
+    // Links [text](url)
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    
+    // Bold **text**
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    
+    // Code `text`
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    // Numbered lists
+    html = html.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
+    html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ol>$&</ol>');
+    
+    // Bullet lists
+    html = html.replace(/^[-*]\s+(.+)$/gm, '<li>$1</li>');
+    html = html.replace(/(<li>.*<\/li>\n?)+/g, function(match) {
+      if (!match.includes('<ol>')) {
+        return '<ul>' + match + '</ul>';
+      }
+      return match;
+    });
+    
+    // Paragraphs
+    html = html.split('\n\n').map(para => {
+      if (!para.trim()) return '';
+      if (para.startsWith('<ul>') || para.startsWith('<ol>')) return para;
+      return '<p>' + para + '</p>';
+    }).join('');
+    
+    return html;
+  }
+  
+  // Create widget HTML
+  widget.innerHTML = `
+    <div class="ps-chat-container">
+      <div class="ps-chat-header">
+        <h2 class="ps-chat-title">Chat with us</h2>
+        <p class="ps-chat-subtitle">Ask us anything about our portable spas</p>
+      </div>
+      <div class="ps-chat-messages" id="${WIDGET_ID}-messages"></div>
+      <div class="ps-chat-input-wrapper">
+        <form class="ps-chat-form" id="${WIDGET_ID}-form">
+          <input 
+            type="text" 
+            class="ps-chat-input" 
+            id="${WIDGET_ID}-input"
+            placeholder="Type your message..."
+            autocomplete="off"
+          />
+          <button type="submit" class="ps-send-button" id="${WIDGET_ID}-send">
+            <svg class="ps-send-icon" viewBox="0 0 24 24">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  `;
+  
+  // Get elements
+  const messagesContainer = document.getElementById(WIDGET_ID + '-messages');
+  const form = document.getElementById(WIDGET_ID + '-form');
+  const input = document.getElementById(WIDGET_ID + '-input');
+  const sendButton = document.getElementById(WIDGET_ID + '-send');
+  
+  // State
+  let messages = [
+    {
+      role: 'assistant',
+      content: 'Hello! Welcome to Portable Spas New Zealand. How can I assist you today?'
+    }
+  ];
+  let isLoading = false;
+  
+  // Render messages
+  function renderMessages() {
+    messagesContainer.innerHTML = '';
+    
+    messages.forEach((message, index) => {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `ps-message ps-${message.role}`;
+      messageDiv.id = `${WIDGET_ID}-message-${index}`;
+      
+      const bubble = document.createElement('div');
+      bubble.className = 'ps-message-bubble';
+      
+      if (message.role === 'user') {
+        const textDiv = document.createElement('div');
+        textDiv.className = 'ps-message-text';
+        textDiv.textContent = message.content;
+        bubble.appendChild(textDiv);
+      } else {
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'ps-message-content';
+        contentDiv.innerHTML = parseMarkdown(message.content);
+        bubble.appendChild(contentDiv);
+      }
+      
+      messageDiv.appendChild(bubble);
+      messagesContainer.appendChild(messageDiv);
+    });
+    
+    if (isLoading) {
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'ps-loading';
+      loadingDiv.innerHTML = `
+        <div class="ps-loading-bubble">
+          <div class="ps-loader"></div>
+        </div>
+      `;
+      messagesContainer.appendChild(loadingDiv);
+    }
+    
+    // Scroll to latest message
+    setTimeout(() => {
+      const lastMessage = document.getElementById(`${WIDGET_ID}-message-${messages.length - 1}`);
+      if (lastMessage) {
+        lastMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  }
+  
+  // Send message
+  async function sendMessage(userMessage) {
+    if (!userMessage.trim() || isLoading) return;
+    
+    // Add user message
+    messages.push({
+      role: 'user',
+      content: userMessage
+    });
+    
+    isLoading = true;
+    input.disabled = true;
+    sendButton.disabled = true;
+    renderMessages();
+    
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: messages
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+      
+      const data = await response.json();
+      
+      messages.push({
+        role: 'assistant',
+        content: data.message
+      });
+      
+    } catch (error) {
+      console.error('Chat error:', error);
+      messages.push({
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.'
+      });
+    } finally {
+      isLoading = false;
+      input.disabled = false;
+      sendButton.disabled = false;
+      renderMessages();
+    }
+  }
+  
+  // Form submit handler
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const message = input.value;
+    input.value = '';
+    sendMessage(message);
+  });
+  
+  // Initial render
+  renderMessages();
+})();
+</script>
+
