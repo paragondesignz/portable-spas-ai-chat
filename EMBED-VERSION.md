@@ -1,14 +1,14 @@
 # 📦 Embed File Version History
 
-## Current Version: v2.3 (Latest)
+## Current Version: v2.4 (Latest) - Claude Style
 
-**File:** `SHOPIFY-NATIVE-EMBED.html`  
+**File:** `SHOPIFY-NATIVE-EMBED.html` & `public/chat-widget.html`  
 **Last Updated:** October 2025  
-**Status:** ✅ Up-to-date with main app
+**Status:** ✅ Up-to-date with main app (Claude-style interface)
 
 ---
 
-## ✅ Current Features (v2.3)
+## ✅ Current Features (v2.4)
 
 All features from the main Next.js app are included:
 
@@ -39,12 +39,22 @@ All features from the main Next.js app are included:
   - "Scroll to bottom" button when scrolled up
   - Natural, Claude-style behavior
 
-### 🎨 UI/UX
-- ✅ **Clean Design**
-  - No borders
-  - White background
-  - Minimalist light mode
+### 🎨 UI/UX (Claude Style)
+- ✅ **Claude-Inspired Layout**
+  - Input visible and centered on load (not below fold)
+  - Fixed header with border-bottom
+  - Messages centered in container (max 768px width)
+  - Rounder message bubbles (16px radius)
+  - Blue user messages, gray assistant messages
+  - White background, minimalist design
   - Responsive mobile/desktop
+  
+- ✅ **Professional Input Area**
+  - Larger, prominent input field
+  - "Message Portable Spas..." placeholder
+  - Send button with icon (44x44px)
+  - Disclaimer text: "AI can make mistakes. Check important info."
+  - Better spacing and visual hierarchy
 
 ### 🔌 Integration
 - ✅ **Native JavaScript**
@@ -310,12 +320,53 @@ Before deploying to production:
 
 ---
 
+## 📜 Version History
+
+### v2.4 (October 2025) - Claude Style Update
+**Changes:**
+- ✅ Redesigned layout to match Claude AI interface
+- ✅ Input now visible and centered on load (not below fold)
+- ✅ Fixed header with cleaner styling and border
+- ✅ Messages centered in 768px container
+- ✅ Rounder message bubbles (16px radius)
+- ✅ Blue user messages (#2563eb), gray assistant messages
+- ✅ Improved input area with disclaimer text
+- ✅ Better spacing and visual hierarchy
+- ✅ Enhanced mobile responsive design
+- ✅ All existing features retained
+
+### v2.3 (October 2025) - Smart Links & Scrolling
+- ✅ Smart link behavior (internal vs external)
+- ✅ Improved scrolling with Claude-style button
+- ✅ Better auto-scroll behavior
+
+### v2.2 (October 2025) - Name Parsing Fix
+- ✅ Smart name extraction from phrases
+- ✅ Handles "I'm Mark", "My name is Mark", etc.
+
+### v2.1 (October 2025) - Personalization
+- ✅ User name collection
+- ✅ Chat history persistence
+- ✅ LocalStorage integration
+
+### v2.0 (October 2025) - Native Embed
+- ✅ Self-contained HTML/CSS/JS
+- ✅ Aggressive CSS overrides
+- ✅ No dependencies
+
+### v1.0 (October 2025) - Initial Release
+- ✅ Basic chat functionality
+- ✅ Pinecone integration
+- ✅ Markdown rendering
+
+---
+
 ## ✅ Status: Production Ready
 
 **Current Status:** ✅ Fully tested and production-ready
 
 The embed file is:
-- ✅ Feature-complete
+- ✅ Feature-complete with Claude-style design
 - ✅ Mobile-optimized  
 - ✅ Cross-browser compatible
 - ✅ SEO-friendly
