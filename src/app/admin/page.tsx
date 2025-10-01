@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Upload, Trash2, RefreshCw, Lock, FileText, AlertCircle, Eye, Download, X } from 'lucide-react';
+import { Upload, Trash2, RefreshCw, Lock, FileText, AlertCircle, Eye, X, Info } from 'lucide-react';
 
 interface FileInfo {
   id: string;
@@ -196,34 +196,6 @@ export default function AdminPage() {
     }
   };
 
-  const handleDownloadFile = (file: FileInfo) => {
-    // Create download info text file
-    const content = `File Information for Pinecone Assistant
-
-Name: ${file.name}
-ID: ${file.id}
-Status: ${file.status}
-Size: ${formatBytes(file.size)}
-Created: ${file.createdOn || 'N/A'}
-Updated: ${file.updatedOn || 'N/A'}
-
-Note: This file is stored in Pinecone Assistant and used for RAG (Retrieval-Augmented Generation).
-To access the actual content, it's embedded in your Pinecone knowledge base.
-
-File ID can be used to reference this file via the Pinecone API.
-`;
-
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${file.name}-info.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -350,6 +322,28 @@ File ID can be used to reference this file via the Pinecone API.
           </div>
         </Card>
 
+        {/* Info Box */}
+        <Card className="p-4 mb-6 bg-blue-50 border-blue-200">
+          <div className="flex gap-3">
+            <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-900">
+              <p className="font-semibold mb-1">About Pinecone Assistant File Processing</p>
+              <p className="mb-2">
+                When you upload a file, Pinecone processes it for AI-powered search:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-blue-800 ml-2">
+                <li>Content is extracted and split into chunks</li>
+                <li>Chunks are converted to vectors (embeddings)</li>
+                <li>Vectors are stored for semantic search</li>
+                <li><strong>Original files are not stored</strong> - only processed knowledge</li>
+              </ul>
+              <p className="mt-2 text-blue-800">
+                💡 <strong>Keep your original files backed up</strong> - they cannot be downloaded from Pinecone.
+              </p>
+            </div>
+          </div>
+        </Card>
+
         {/* Messages */}
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 flex items-center gap-2">
@@ -423,27 +417,20 @@ File ID can be used to reference this file via the Pinecone API.
                       variant="outline"
                       size="sm"
                       className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                      title="View file details"
+                      title="View file metadata"
                     >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      onClick={() => handleDownloadFile(file)}
-                      variant="outline"
-                      size="sm"
-                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                      title="Download file info"
-                    >
-                      <Download className="h-4 w-4" />
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
                     </Button>
                     <Button
                       onClick={() => handleDelete(file.id, file.name)}
                       variant="outline"
                       size="sm"
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      title="Delete file"
+                      title="Delete from Pinecone"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
                     </Button>
                   </div>
                 </div>
@@ -519,23 +506,23 @@ File ID can be used to reference this file via the Pinecone API.
                     )}
                   </div>
 
-                  <div className="bg-blue-50 border border-blue-200 rounded p-4">
-                    <p className="text-sm text-blue-900">
-                      <strong>Note:</strong> This file is embedded in your Pinecone knowledge base and used for 
-                      Retrieval-Augmented Generation (RAG). The actual content is vectorized and stored 
-                      in Pinecone's vector database for semantic search.
-                    </p>
+                  <div className="bg-amber-50 border border-amber-200 rounded p-4">
+                    <div className="flex gap-2">
+                      <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0" />
+                      <div className="text-sm text-amber-900">
+                        <p className="font-semibold mb-1">Original File Not Available</p>
+                        <p className="mb-2">
+                          Pinecone processes files for AI search and doesn't store the original file. 
+                          Only the extracted knowledge exists as vectors in your knowledge base.
+                        </p>
+                        <p className="text-amber-800">
+                          💡 Keep backups of your original files if you need them later.
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex gap-2">
-                    <Button
-                      onClick={() => handleDownloadFile(viewingFile)}
-                      className="flex-1"
-                      variant="outline"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download Info
-                    </Button>
                     <Button
                       onClick={() => setViewingFile(null)}
                       className="flex-1"

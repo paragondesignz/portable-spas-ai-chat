@@ -1,14 +1,14 @@
 # 📦 Embed File Version History
 
-## Current Version: v2.5 (Latest) - Centered Landing Layout
+## Current Version: v2.6 (Latest) - Blue Theme + Smart Scroll
 
 **File:** `SHOPIFY-NATIVE-EMBED.html` & `public/chat-widget.html`  
 **Last Updated:** October 2025  
-**Status:** ✅ Up-to-date with main app (Centered Gemini-style interface)
+**Status:** ✅ Up-to-date with main app (Blue user messages + natural scroll)
 
 ---
 
-## ✅ Current Features (v2.5)
+## ✅ Current Features (v2.6)
 
 All features from the main Next.js app are included:
 
@@ -33,11 +33,12 @@ All features from the main Next.js app are included:
   - External links → New tab
   - Automatic detection and routing
 
-### 📜 Smooth Scrolling
-- ✅ **Auto-scroll to Bottom**
-  - Smooth scroll on new messages
-  - "Scroll to bottom" button when scrolled up
-  - Natural, Claude-style behavior
+### 📜 Smart Scrolling
+- ✅ **Auto-scroll to Message Start**
+  - Scrolls to beginning of latest message (not end)
+  - Natural reading flow - see reply from the start
+  - "New messages" button when scrolled up
+  - Smooth scroll behavior
 
 ### 🎨 UI/UX (Centered Landing Style)
 - ✅ **Centered Landing Page** (shows when ≤1 message)
@@ -53,15 +54,16 @@ All features from the main Next.js app are included:
   - Fixed header with border-bottom
   - Messages centered in container (max 768px width)
   - Rounder message bubbles (16px radius)
-  - All gray color scheme (no blue)
-  - Gray user messages (#e5e7eb), light gray assistant (#f3f4f6)
+  - **Blue user messages (#2563eb), light gray assistant (#f3f4f6)**
+  - **Blue links (#2563eb)** for easy identification
   - Gray send button (rounded-full)
   - White background, minimalist design
   - Responsive mobile/desktop
   
 - ✅ **Consistent Styling**
   - Rounded inputs (24px radius)
-  - Gray underlined links
+  - **Blue underlined links in assistant messages**
+  - **White links in user messages** (for contrast)
   - Send button: 44x44px (chat), 56x56px (landing)
   - Disclaimer text in chat view
   - Better spacing and visual hierarchy
@@ -98,7 +100,25 @@ All features from the main Next.js app are included:
 
 ## 🔄 Version History
 
-### v2.3 (Current) - October 2025
+### v2.6 (Current) - October 2025
+- ✅ **NEW:** Scroll to beginning of message (not end)
+- ✅ **NEW:** Blue user message bubbles (#2563eb)
+- ✅ **NEW:** Blue links in assistant messages (#2563eb)
+- ✅ White links in user messages (for contrast)
+- ✅ Natural reading flow - see reply from start
+- ✅ Improved scroll-to-message button behavior
+
+### v2.5 - October 2025
+- ✅ Centered landing page layout
+- ✅ Gray color scheme throughout
+- ✅ Dynamic layout switching
+
+### v2.4 - October 2025
+- ✅ Claude-style interface
+- ✅ Fixed header design
+- ✅ Centered message container
+
+### v2.3 - October 2025
 - ✅ Smart name extraction with pattern matching
 - ✅ Fixed scrolling behavior
 - ✅ Added scroll-to-bottom button
@@ -331,6 +351,17 @@ Before deploying to production:
 ---
 
 ## 📜 Version History
+
+### v2.6 (October 2025) - Blue Theme + Smart Scroll
+**Changes:**
+- ✅ **NEW:** Scroll to beginning of latest message (not end)
+- ✅ **NEW:** Blue user message bubbles (#2563eb, white text)
+- ✅ **NEW:** Blue links in assistant messages (#2563eb)
+- ✅ **NEW:** White links in user messages (contrast on blue)
+- ✅ Natural reading flow - see reply from the start
+- ✅ Improved scroll behavior with message refs
+- ✅ Updated "scroll to bottom" to scroll to message start
+- ✅ More intuitive UX - no need to scroll back up
 
 ### v2.5 (October 2025) - Centered Landing Layout
 **Changes:**
