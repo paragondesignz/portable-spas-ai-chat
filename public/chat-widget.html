@@ -20,9 +20,119 @@
       width: 100%;
       max-width: 100%;
       min-height: 100vh;
+      background: white;
+    }
+    
+    /* Centered landing layout */
+    .centered-container {
       display: flex;
       flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .centered-content {
+      width: 100%;
+      max-width: 768px;
+    }
+    
+    .large-greeting {
+      font-size: 48px;
+      font-weight: 400;
+      color: #1f2937;
+      text-align: center;
+      margin-bottom: 48px;
+      line-height: 1.2;
+    }
+    
+    @media (min-width: 768px) {
+      .large-greeting {
+        font-size: 60px;
+      }
+    }
+    
+    .centered-input-form {
+      margin-bottom: 32px;
+    }
+    
+    .centered-input-wrapper {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .centered-input {
+      flex: 1;
+      padding: 20px 24px;
+      border: 1px solid #d1d5db;
+      border-radius: 24px;
+      font-size: 18px;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s;
       background: white;
+      color: #1f2937;
+    }
+    
+    .centered-input:focus {
+      border-color: #9ca3af;
+      box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.1);
+    }
+    
+    .centered-send-btn {
+      width: 56px;
+      height: 56px;
+      background: #1f2937;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .centered-send-btn:hover:not(:disabled) {
+      background: #111827;
+    }
+    
+    .centered-send-btn:disabled {
+      background: #e5e7eb;
+      color: #9ca3af;
+      cursor: not-allowed;
+    }
+    
+    .centered-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+    
+    .centered-action-btn {
+      padding: 8px 16px;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 20px;
+      font-size: 14px;
+      color: #4b5563;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .centered-action-btn:hover {
+      background: #e5e7eb;
+      color: #1f2937;
+    }
+    
+    /* Chat container */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
     
     /* Header */
@@ -123,8 +233,8 @@
     }
     
     .message.user .bubble {
-      background: #2563eb;
-      color: white;
+      background: #e5e7eb;
+      color: #1f2937;
     }
     
     .message.assistant .bubble {
@@ -150,13 +260,9 @@
     }
     
     .bubble a {
-      color: #2563eb;
+      color: #1f2937;
       text-decoration: underline;
       font-weight: 500;
-    }
-    
-    .message.user .bubble a {
-      color: white;
     }
     
     .bubble strong {
@@ -265,8 +371,8 @@
     #message-input {
       width: 100%;
       padding: 12px 16px;
-      border: 1px solid #e5e7eb;
-      border-radius: 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 24px;
       font-size: 16px;
       font-family: inherit;
       outline: none;
@@ -279,8 +385,8 @@
     }
     
     #message-input:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      border-color: #9ca3af;
+      box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.1);
     }
     
     #message-input:disabled {
@@ -291,10 +397,10 @@
     .send-btn {
       width: 44px;
       height: 44px;
-      background: #2563eb;
+      background: #1f2937;
       color: white;
       border: none;
-      border-radius: 12px;
+      border-radius: 50%;
       cursor: pointer;
       transition: all 0.2s;
       flex-shrink: 0;
@@ -304,7 +410,7 @@
     }
     
     .send-btn:hover:not(:disabled) {
-      background: #1d4ed8;
+      background: #111827;
     }
     
     .send-btn:disabled {
@@ -368,52 +474,7 @@
   </style>
 </head>
 <body>
-  <div id="chat-widget">
-    <div class="chat-header">
-      <div class="header-content">
-        <div class="header-info">
-          <h2 class="chat-title">Chat with us</h2>
-          <p class="chat-subtitle" id="subtitle">Portable Spas New Zealand</p>
-        </div>
-        <div class="header-actions">
-          <button class="header-btn" onclick="clearChat()">Clear chat</button>
-          <button class="header-btn" id="change-name-btn" style="display: none;" onclick="changeName()">Change name</button>
-        </div>
-      </div>
-    </div>
-    
-    <div class="messages-area" id="messages-area">
-      <div class="messages-inner" id="messages"></div>
-      
-      <button class="scroll-to-bottom" id="scroll-btn" onclick="scrollToBottom()">
-        <svg class="scroll-icon" viewBox="0 0 24 24">
-          <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
-        </svg>
-        <span>New messages</span>
-      </button>
-    </div>
-    
-    <div class="input-area">
-      <div class="input-container">
-        <form class="input-wrapper" onsubmit="sendMessage(event)">
-          <div class="input-field">
-            <input 
-              type="text" 
-              id="message-input"
-              placeholder="Message Portable Spas..."
-              autocomplete="off"
-            />
-          </div>
-          <button type="submit" class="send-btn" id="send-btn">
-            <svg class="send-icon" viewBox="0 0 24 24">
-              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-            </svg>
-          </button>
-        </form>
-        <p class="disclaimer">AI can make mistakes. Check important info.</p>
-      </div>
-    </div>
-  </div>
+  <div id="chat-widget"></div>
 
   <script>
     // Configuration
@@ -547,21 +608,68 @@
     
     // Render messages
     function render() {
-      const messagesContainer = document.getElementById('messages');
-      const subtitle = document.getElementById('subtitle');
-      const changeNameBtn = document.getElementById('change-name-btn');
+      const container = document.getElementById('chat-widget');
+      const showCenteredLayout = messages.length <= 1;
       
-      // Update subtitle
-      subtitle.textContent = userName ? `Hi ${userName}!` : 'Portable Spas New Zealand';
-      
-      // Show/hide change name button
-      if (userName) {
-        changeNameBtn.style.display = 'block';
-      } else {
-        changeNameBtn.style.display = 'none';
+      if (showCenteredLayout) {
+        // Centered landing page layout
+        const greeting = userName ? `Hey there, ${userName}` : 'Hey there';
+        const placeholder = askingForName ? "What's your name?" : "How can I help you today?";
+        const changeNameBtn = userName ? `
+          <button class="centered-action-btn" onclick="changeName()">Change name</button>
+        ` : '';
+        
+        container.innerHTML = `
+          <div class="centered-container">
+            <div class="centered-content">
+              <h1 class="large-greeting">${greeting}</h1>
+              
+              <form class="centered-input-form" onsubmit="sendMessage(event)">
+                <div class="centered-input-wrapper">
+                  <input 
+                    type="text" 
+                    class="centered-input" 
+                    id="message-input"
+                    placeholder="${placeholder}"
+                    autocomplete="off"
+                    ${isLoading ? 'disabled' : ''}
+                  />
+                  <button 
+                    type="submit" 
+                    class="centered-send-btn"
+                    ${isLoading ? 'disabled' : ''}
+                  >
+                    ${isLoading ? '<div class="loader"></div>' : `
+                      <svg class="send-icon" viewBox="0 0 24 24">
+                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                      </svg>
+                    `}
+                  </button>
+                </div>
+              </form>
+              
+              <div class="centered-actions">
+                <button class="centered-action-btn" onclick="clearChat()">Clear chat</button>
+                ${changeNameBtn}
+              </div>
+            </div>
+          </div>
+        `;
+        
+        const input = document.getElementById('message-input');
+        if (input && !isLoading) {
+          input.focus();
+        }
+        
+        return;
       }
       
-      // Render messages
+      // Normal chat view
+      const subtitle = userName ? `Hi ${userName}!` : 'Portable Spas New Zealand';
+      const changeNameBtn = userName ? `
+        <button class="header-btn" onclick="changeName()">Change name</button>
+      ` : '';
+      
       const messagesHtml = messages.map(msg => {
         const cssClass = msg.role === 'user' ? 'user' : 'assistant';
         const content = msg.role === 'user' 
@@ -583,7 +691,71 @@
         </div>
       ` : '';
       
-      messagesContainer.innerHTML = messagesHtml + loadingHtml;
+      container.innerHTML = `
+        <div class="chat-container">
+          <div class="chat-header">
+            <div class="header-content">
+              <div class="header-info">
+                <h2 class="chat-title">Chat with us</h2>
+                <p class="chat-subtitle">${subtitle}</p>
+              </div>
+              <div class="header-actions">
+                <button class="header-btn" onclick="clearChat()">Clear chat</button>
+                ${changeNameBtn}
+              </div>
+            </div>
+          </div>
+          
+          <div class="messages-area" id="messages-area">
+            <div class="messages-inner">
+              ${messagesHtml}
+              ${loadingHtml}
+            </div>
+            
+            <button class="scroll-to-bottom" id="scroll-btn" onclick="scrollToBottom()">
+              <svg class="scroll-icon" viewBox="0 0 24 24">
+                <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+              </svg>
+              <span>New messages</span>
+            </button>
+          </div>
+          
+          <div class="input-area">
+            <div class="input-container">
+              <form class="input-wrapper" onsubmit="sendMessage(event)">
+                <div class="input-field">
+                  <input 
+                    type="text" 
+                    id="message-input"
+                    placeholder="Message Portable Spas..."
+                    autocomplete="off"
+                    ${isLoading ? 'disabled' : ''}
+                  />
+                </div>
+                <button type="submit" class="send-btn" ${isLoading ? 'disabled' : ''}>
+                  ${isLoading ? '<div class="loader"></div>' : `
+                    <svg class="send-icon" viewBox="0 0 24 24">
+                      <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                    </svg>
+                  `}
+                </button>
+              </form>
+              <p class="disclaimer">AI can make mistakes. Check important info.</p>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Attach scroll listener
+      const messagesArea = document.getElementById('messages-area');
+      if (messagesArea) {
+        messagesArea.addEventListener('scroll', checkScroll);
+      }
+      
+      const input = document.getElementById('message-input');
+      if (input && !isLoading) {
+        input.focus();
+      }
       
       setTimeout(() => scrollToBottom('auto'), 100);
     }
