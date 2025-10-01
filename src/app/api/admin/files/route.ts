@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pinecone } from '@pinecone-database/pinecone';
 
 export const runtime = 'nodejs';
 
@@ -41,13 +40,25 @@ export async function GET(req: NextRequest) {
       throw new Error('PINECONE_API_KEY is not defined');
     }
 
-    const pc = new Pinecone({ apiKey });
-    const assistant = pc.assistant.Assistant(assistantName);
-    
-    const files = await assistant.listFiles();
+    // Call Pinecone Assistant API directly
+    const response = await fetch(`https://prod-1-data.ke.pinecone.io/assistant/files/${assistantName}`, {
+      method: 'GET',
+      headers: {
+        'Api-Key': apiKey,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Pinecone API Error:', response.status, errorData);
+      throw new Error(`Pinecone API error: ${response.status}`);
+    }
+
+    const data = await response.json();
 
     return NextResponse.json({
-      files: files.files?.map((file: any) => ({
+      files: data.files?.map((file: any) => ({
         id: file.id,
         name: file.name,
         status: file.status,
@@ -55,7 +66,7 @@ export async function GET(req: NextRequest) {
         createdOn: file.created_on,
         updatedOn: file.updated_on
       })) || [],
-      total: files.files?.length || 0
+      total: data.files?.length || 0
     }, { headers: corsHeaders });
 
   } catch (error: any) {
@@ -93,10 +104,19 @@ export async function DELETE(req: NextRequest) {
       throw new Error('PINECONE_API_KEY is not defined');
     }
 
-    const pc = new Pinecone({ apiKey });
-    const assistant = pc.assistant.Assistant(assistantName);
-    
-    await assistant.deleteFile(fileId);
+    // Call Pinecone Assistant API directly
+    const response = await fetch(`https://prod-1-data.ke.pinecone.io/assistant/files/${assistantName}/${fileId}`, {
+      method: 'DELETE',
+      headers: {
+        'Api-Key': apiKey,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Pinecone API Error:', response.status, errorData);
+      throw new Error(`Pinecone API error: ${response.status}`);
+    }
 
     return NextResponse.json({
       success: true,

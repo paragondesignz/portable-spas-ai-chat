@@ -1,8 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pinecone } from '@pinecone-database/pinecone';
-import { writeFile, unlink } from 'fs/promises';
-import { join } from 'path';
-import { tmpdir } from 'os';
 
 export const runtime = 'nodejs';
 
@@ -28,8 +24,6 @@ export async function OPTIONS() {
 }
 
 export async function POST(req: NextRequest) {
-  let tempFilePath: string | null = null;
-
   try {
     if (!checkAuth(req)) {
       return NextResponse.json(
@@ -48,13 +42,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Save file temporarily
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    
-    tempFilePath = join(tmpdir(), `pinecone-upload-${Date.now()}-${file.name}`);
-    await writeFile(tempFilePath, buffer);
-
     // Upload to Pinecone
     const apiKey = process.env.PINECONE_API_KEY;
     const assistantName = process.env.PINECONE_ASSISTANT_NAME || 'portable-spas';
@@ -63,40 +50,40 @@ export async function POST(req: NextRequest) {
       throw new Error('PINECONE_API_KEY is not defined');
     }
 
-    const pc = new Pinecone({ apiKey });
-    const assistant = pc.assistant.Assistant(assistantName);
-    
-    const response = await assistant.uploadFile({
-      filePath: tempFilePath,
-      timeout: 300000, // 5 minutes
+    // Create FormData for Pinecone API
+    const pineconeFormData = new FormData();
+    pineconeFormData.append('file', file);
+
+    // Call Pinecone Assistant API directly
+    const response = await fetch(`https://prod-1-data.ke.pinecone.io/assistant/files/${assistantName}`, {
+      method: 'POST',
+      headers: {
+        'Api-Key': apiKey,
+      },
+      body: pineconeFormData,
     });
 
-    // Clean up temp file
-    await unlink(tempFilePath);
-    tempFilePath = null;
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Pinecone API Error:', response.status, errorData);
+      throw new Error(`Pinecone API error: ${response.status} - ${errorData}`);
+    }
+
+    const data = await response.json();
 
     return NextResponse.json({
       success: true,
       file: {
-        id: response.id,
-        name: response.name,
-        status: response.status,
-        size: response.size
+        id: data.id,
+        name: data.name,
+        status: data.status,
+        size: data.size
       },
       message: 'File uploaded successfully'
     }, { headers: corsHeaders });
 
   } catch (error: any) {
     console.error('Upload file error:', error);
-    
-    // Clean up temp file on error
-    if (tempFilePath) {
-      try {
-        await unlink(tempFilePath);
-      } catch (e) {
-        console.error('Failed to clean up temp file:', e);
-      }
-    }
 
     return NextResponse.json(
       { error: 'Failed to upload file', details: error.message },
