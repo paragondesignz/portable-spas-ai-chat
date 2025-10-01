@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Upload, Trash2, RefreshCw, Lock, FileText, AlertCircle } from 'lucide-react';
+import { Upload, Trash2, RefreshCw, Lock, FileText, AlertCircle, Eye, Download, X } from 'lucide-react';
 
 interface FileInfo {
   id: string;
@@ -24,6 +24,8 @@ export default function AdminPage() {
   const [success, setSuccess] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [viewingFile, setViewingFile] = useState<FileInfo | null>(null);
+  const [isLoadingFile, setIsLoadingFile] = useState(false);
 
   // Check if already authenticated
   useEffect(() => {
@@ -168,6 +170,58 @@ export default function AdminPage() {
     } catch (err: any) {
       setError(err.message);
     }
+  };
+
+  const handleViewFile = async (file: FileInfo) => {
+    setIsLoadingFile(true);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/admin/files/${file.id}`, {
+        headers: {
+          'Authorization': `Bearer ${password}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load file details');
+      }
+
+      const data = await response.json();
+      setViewingFile(data.file);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoadingFile(false);
+    }
+  };
+
+  const handleDownloadFile = (file: FileInfo) => {
+    // Create download info text file
+    const content = `File Information for Pinecone Assistant
+
+Name: ${file.name}
+ID: ${file.id}
+Status: ${file.status}
+Size: ${formatBytes(file.size)}
+Created: ${file.createdOn || 'N/A'}
+Updated: ${file.updatedOn || 'N/A'}
+
+Note: This file is stored in Pinecone Assistant and used for RAG (Retrieval-Augmented Generation).
+To access the actual content, it's embedded in your Pinecone knowledge base.
+
+File ID can be used to reference this file via the Pinecone API.
+`;
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${file.name}-info.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const formatBytes = (bytes: number) => {
@@ -363,19 +417,137 @@ export default function AdminPage() {
                       {formatBytes(file.size)} • ID: {file.id}
                     </p>
                   </div>
-                  <Button
-                    onClick={() => handleDelete(file.id, file.name)}
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => handleViewFile(file)}
+                      variant="outline"
+                      size="sm"
+                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      title="View file details"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      onClick={() => handleDownloadFile(file)}
+                      variant="outline"
+                      size="sm"
+                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                      title="Download file info"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      onClick={() => handleDelete(file.id, file.name)}
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      title="Delete file"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </Card>
+
+        {/* File View Modal */}
+        {viewingFile && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <Card className="w-full max-w-2xl max-h-[80vh] overflow-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                    <FileText className="h-6 w-6" />
+                    File Details
+                  </h3>
+                  <button
+                    onClick={() => setViewingFile(null)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded p-4 space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Name</label>
+                      <p className="text-gray-900 font-mono text-sm">{viewingFile.name}</p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">File ID</label>
+                      <p className="text-gray-900 font-mono text-xs break-all">{viewingFile.id}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-600">Status</label>
+                        <p className={`text-sm font-medium ${
+                          viewingFile.status === 'Available' 
+                            ? 'text-green-600' 
+                            : 'text-yellow-600'
+                        }`}>
+                          {viewingFile.status}
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium text-gray-600">Size</label>
+                        <p className="text-gray-900 text-sm">{formatBytes(viewingFile.size)}</p>
+                      </div>
+                    </div>
+
+                    {viewingFile.createdOn && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-600">Created</label>
+                        <p className="text-gray-900 text-sm">
+                          {new Date(viewingFile.createdOn).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+
+                    {viewingFile.updatedOn && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-600">Last Updated</label>
+                        <p className="text-gray-900 text-sm">
+                          {new Date(viewingFile.updatedOn).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded p-4">
+                    <p className="text-sm text-blue-900">
+                      <strong>Note:</strong> This file is embedded in your Pinecone knowledge base and used for 
+                      Retrieval-Augmented Generation (RAG). The actual content is vectorized and stored 
+                      in Pinecone's vector database for semantic search.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleDownloadFile(viewingFile)}
+                      className="flex-1"
+                      variant="outline"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Info
+                    </Button>
+                    <Button
+                      onClick={() => setViewingFile(null)}
+                      className="flex-1"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
