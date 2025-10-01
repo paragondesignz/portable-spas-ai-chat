@@ -353,7 +353,7 @@ export default function ChatInterface() {
               <div
                 className={`max-w-[85%] rounded-2xl px-4 py-3 ${
                   message.role === 'user'
-                    ? 'bg-gray-200 text-gray-900'
+                    ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-900'
                 }`}
               >
@@ -380,7 +380,7 @@ export default function ChatInterface() {
                                   href={href}
                                   target={isInternal ? '_self' : '_blank'}
                                   rel={isInternal ? undefined : 'noopener noreferrer'}
-                                  className="text-gray-800 hover:underline font-medium underline"
+                                  className="text-blue-600 hover:underline font-medium underline"
                                   {...props}
                                 >
                                   {children}
