@@ -10,10 +10,13 @@ A modern AI-powered customer service chat interface for Portable Spas New Zealan
 ## Features
 
 - 🤖 AI-powered customer service using Pinecone Assistant
-- 💬 Real-time chat interface
+- 💬 Real-time chat interface with personalization
 - 📚 Vector-based knowledge retrieval (RAG)
 - 🎨 Clean, minimalist UI with shadcn/ui components
 - 📱 Responsive design
+- 👤 Name collection and chat history persistence
+- 🔗 Smart link behavior (internal vs external)
+- 🔐 Admin interface for file management
 
 ## Tech Stack
 
@@ -47,13 +50,14 @@ npm install
 
 3. Set up environment variables:
 ```bash
-cp .env.example .env.local
+cp env.example .env.local
 ```
 
-Edit `.env.local` and add your Pinecone API key:
+Edit `.env.local` and add your credentials:
 ```
 PINECONE_API_KEY=your_pinecone_api_key_here
-PINECONE_ASSISTANT_NAME=portable-spas-assistant
+PINECONE_ASSISTANT_NAME=portable-spas
+ADMIN_PASSWORD=your-secure-admin-password
 ```
 
 4. Run the development server:
@@ -158,6 +162,26 @@ portable-spas-AI-chat/
 2. **Ask questions**: Type your question about portable spas and press Send
 3. **Get AI responses**: The assistant will respond using knowledge from your uploaded documents
 4. **View sources**: Citations will be shown when the AI references specific documents
+
+## 🔐 Admin File Management
+
+Access the web-based admin interface to manage your Pinecone knowledge base files:
+
+**URL:** `https://portable-spas-ai-chat.vercel.app/admin` (or `/admin` locally)
+
+### Features:
+- **Upload Files**: Drag & drop or select .txt, .pdf, .csv, .md files
+- **List Files**: View all uploaded files with status and size
+- **Delete Files**: Remove outdated or unwanted files
+- **Secure**: Password-protected access
+
+### Setup:
+1. Set `ADMIN_PASSWORD` in your `.env.local` or Vercel environment variables
+2. Navigate to `/admin`
+3. Login with your password
+4. Manage your knowledge base files
+
+See **[ADMIN-INTERFACE.md](./ADMIN-INTERFACE.md)** for complete documentation.
 
 ## Customization
 
