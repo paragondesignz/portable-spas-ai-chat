@@ -251,6 +251,65 @@ export default function ChatInterface() {
     }
   };
 
+  // Show centered layout when no messages or only initial greeting
+  const showCenteredLayout = messages.length <= 1;
+
+  if (showCenteredLayout) {
+    return (
+      <div className="w-full min-h-screen flex flex-col items-center justify-center bg-white px-4">
+        <div className="w-full max-w-3xl">
+          {/* Large greeting */}
+          <h1 className="text-5xl md:text-6xl font-normal text-gray-800 text-center mb-12">
+            {userName ? `Hey there, ${userName}` : 'Hey there'}
+          </h1>
+          
+          {/* Centered input */}
+          <form onSubmit={handleSubmit} className="mb-8">
+            <div className="flex gap-3 items-center">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={askingForName ? "What's your name?" : "How can I help you today?"}
+                disabled={isLoading}
+                className="flex-1 px-6 py-6 text-lg border-gray-300 rounded-3xl focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+              />
+              <Button 
+                type="submit" 
+                disabled={isLoading || !input.trim()}
+                className="h-14 w-14 rounded-full bg-gray-800 hover:bg-gray-900 disabled:bg-gray-200 disabled:text-gray-400 transition-colors"
+                size="icon"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                ) : (
+                  <Send className="h-6 w-6" />
+                )}
+              </Button>
+            </div>
+          </form>
+
+          {/* Action buttons below input */}
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={handleClearChat}
+              className="text-sm px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-full text-gray-700 transition-colors"
+            >
+              Clear chat
+            </button>
+            {userName && (
+              <button
+                onClick={handleChangeName}
+                className="text-sm px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-full text-gray-700 transition-colors"
+              >
+                Change name
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full min-h-screen flex flex-col bg-white">
       {/* Header - fixed at top */}
@@ -294,7 +353,7 @@ export default function ChatInterface() {
               <div
                 className={`max-w-[85%] rounded-2xl px-4 py-3 ${
                   message.role === 'user'
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-gray-200 text-gray-900'
                     : 'bg-gray-100 text-gray-900'
                 }`}
               >
@@ -316,18 +375,18 @@ export default function ChatInterface() {
                             }
                           })() : false;
                           
-                          return (
-                            <a
-                              href={href}
-                              target={isInternal ? '_self' : '_blank'}
-                              rel={isInternal ? undefined : 'noopener noreferrer'}
-                              className="text-primary hover:underline font-medium"
-                              {...props}
-                            >
-                              {children}
-                            </a>
-                          );
-                        },
+                              return (
+                                <a
+                                  href={href}
+                                  target={isInternal ? '_self' : '_blank'}
+                                  rel={isInternal ? undefined : 'noopener noreferrer'}
+                                  className="text-gray-800 hover:underline font-medium underline"
+                                  {...props}
+                                >
+                                  {children}
+                                </a>
+                              );
+                            },
                         p: ({ node, ...props }) => (
                           <p {...props} className="mb-2 last:mb-0" />
                         ),
@@ -388,7 +447,7 @@ export default function ChatInterface() {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Message Portable Spas..."
                 disabled={isLoading}
-                className="w-full px-4 py-3 text-base border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="w-full px-4 py-3 text-base border-gray-300 rounded-3xl focus:ring-2 focus:ring-gray-400 focus:border-transparent resize-none"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -400,7 +459,7 @@ export default function ChatInterface() {
             <Button 
               type="submit" 
               disabled={isLoading || !input.trim()}
-              className="h-11 w-11 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 transition-colors"
+              className="h-11 w-11 rounded-full bg-gray-800 hover:bg-gray-900 disabled:bg-gray-200 disabled:text-gray-400 transition-colors"
               size="icon"
             >
               {isLoading ? (
