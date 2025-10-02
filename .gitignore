@@ -28,6 +28,12 @@ yarn-error.log*
 .env*.local
 .env
 
+# sensitive files
+*.txt
+!requirements.txt
+!README.md
+!*.md
+
 # vercel
 .vercel
 
