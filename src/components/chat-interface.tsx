@@ -103,14 +103,16 @@ export default function ChatInterface() {
     }
   }, [messages, userName, isInitialized]);
 
-  // Scroll to bottom of chat to show latest message
-  const scrollToLatestMessage = (behavior: ScrollBehavior = 'smooth') => {
-    const lastIndex = messages.length - 1;
-    if (lastIndex >= 0 && messageRefs.current[lastIndex]) {
-      messageRefs.current[lastIndex]?.scrollIntoView({
-        behavior,
-        block: 'end'
-      });
+  // Scroll to bottom of chat smoothly
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTo({
+          top: scrollContainer.scrollHeight,
+          behavior
+        });
+      }
     }
   };
 
@@ -126,14 +128,14 @@ export default function ChatInterface() {
     }
   };
 
-  // Auto-scroll when new messages arrive
+  // Auto-scroll when new messages arrive (but not when loading state changes)
   useEffect(() => {
-    if (messages.length > 0 || isLoading) {
+    if (messages.length > 0) {
       // Small delay to ensure DOM has updated
-      const timer = setTimeout(() => scrollToLatestMessage('smooth'), 100);
+      const timer = setTimeout(() => scrollToBottom('smooth'), 100);
       return () => clearTimeout(timer);
     }
-  }, [messages.length, isLoading]);
+  }, [messages.length]);
 
   // Attach scroll listener
   useEffect(() => {
@@ -426,7 +428,7 @@ export default function ChatInterface() {
             {/* Scroll to latest message button */}
             {showScrollButton && (
               <button
-                onClick={() => scrollToLatestMessage('smooth')}
+                onClick={() => scrollToBottom('smooth')}
                 className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white border border-gray-200 rounded-full px-4 py-2 shadow-lg hover:shadow-xl hover:bg-gray-50 transition-all flex items-center gap-2 text-sm text-gray-700"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
