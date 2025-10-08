@@ -42,6 +42,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Validate file type - Pinecone Assistant only supports: txt, pdf, md, docx, json
+    const allowedExtensions = ['.txt', '.pdf', '.md', '.docx', '.json'];
+    const fileName = file.name.toLowerCase();
+    const isValidType = allowedExtensions.some(ext => fileName.endsWith(ext));
+
+    if (!isValidType) {
+      return NextResponse.json(
+        {
+          error: 'Unsupported file type',
+          details: `Pinecone Assistant only supports: ${allowedExtensions.join(', ')}. CSV files are not supported.`
+        },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
     // Upload to Pinecone
     const apiKey = process.env.PINECONE_API_KEY;
     const assistantName = process.env.PINECONE_ASSISTANT_NAME || 'portable-spas';

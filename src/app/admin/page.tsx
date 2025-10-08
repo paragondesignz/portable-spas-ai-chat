@@ -93,6 +93,20 @@ export default function AdminPage() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type
+      const allowedExtensions = ['.txt', '.pdf', '.md', '.docx', '.json'];
+      const fileName = file.name.toLowerCase();
+      const isValidType = allowedExtensions.some(ext => fileName.endsWith(ext));
+
+      if (!isValidType) {
+        setError(`Unsupported file type. Please upload: ${allowedExtensions.join(', ')}`);
+        setSelectedFile(null);
+        setSuccess('');
+        // Reset file input
+        e.target.value = '';
+        return;
+      }
+
       setSelectedFile(file);
       setError('');
       setSuccess('');
@@ -284,14 +298,18 @@ export default function AdminPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select File (.txt, .pdf, .md, .csv, etc.)
+                Select File (.txt, .pdf, .md, .docx, .json)
               </label>
               <input
                 id="file-input"
                 type="file"
+                accept=".txt,.pdf,.md,.docx,.json"
                 onChange={handleFileSelect}
                 className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Supported: TXT, PDF, Markdown, DOCX, JSON (CSV not supported by Pinecone)
+              </p>
             </div>
 
             {selectedFile && (
