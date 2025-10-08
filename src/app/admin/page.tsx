@@ -94,7 +94,7 @@ export default function AdminPage() {
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
-      const allowedExtensions = ['.txt', '.pdf', '.md', '.docx', '.json'];
+      const allowedExtensions = ['.txt', '.pdf', '.md', '.docx', '.json', '.csv'];
       const fileName = file.name.toLowerCase();
       const isValidType = allowedExtensions.some(ext => fileName.endsWith(ext));
 
@@ -298,17 +298,17 @@ export default function AdminPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select File (.txt, .pdf, .md, .docx, .json)
+                Select File (.txt, .pdf, .md, .docx, .json, .csv)
               </label>
               <input
                 id="file-input"
                 type="file"
-                accept=".txt,.pdf,.md,.docx,.json"
+                accept=".txt,.pdf,.md,.docx,.json,.csv"
                 onChange={handleFileSelect}
                 className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Supported: TXT, PDF, Markdown, DOCX, JSON (CSV not supported by Pinecone)
+                Supported: TXT, PDF, Markdown, DOCX, JSON, CSV (CSV auto-converts to Markdown)
               </p>
             </div>
 
