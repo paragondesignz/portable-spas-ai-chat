@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Upload, Trash2, RefreshCw, Lock, FileText, AlertCircle, Eye, X, Info } from 'lucide-react';
+import { Upload, Trash2, RefreshCw, Lock, FileText, AlertCircle, Eye, X, Info, Globe } from 'lucide-react';
 
 interface FileInfo {
   id: string;
@@ -26,6 +26,9 @@ export default function AdminPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [viewingFile, setViewingFile] = useState<FileInfo | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
+  const [isScraping, setIsScraping] = useState(false);
+  const [scrapeUrl, setScrapeUrl] = useState('https://portablespas.co.nz');
+  const [maxPages, setMaxPages] = useState(50);
 
   // Check if already authenticated
   useEffect(() => {
@@ -210,6 +213,43 @@ export default function AdminPage() {
     }
   };
 
+  const handleScrapeWebsite = async () => {
+    if (!scrapeUrl) {
+      setError('Please enter a URL to scrape');
+      return;
+    }
+
+    setIsScraping(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await fetch('/api/admin/scrape', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${password}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ url: scrapeUrl, maxPages })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Scraping failed');
+      }
+
+      const data = await response.json();
+      setSuccess(`Successfully scraped ${data.stats.pagesScraped} pages and uploaded to Pinecone! File: ${data.stats.fileName}`);
+
+      // Reload files
+      await loadFiles();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsScraping(false);
+    }
+  };
+
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -334,6 +374,77 @@ export default function AdminPage() {
                 <>
                   <Upload className="h-4 w-4 mr-2" />
                   Upload to Pinecone
+                </>
+              )}
+            </Button>
+          </div>
+        </Card>
+
+        {/* Website Scraper Section */}
+        <Card className="p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            Scrape Website
+          </h2>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Website URL
+              </label>
+              <Input
+                type="url"
+                value={scrapeUrl}
+                onChange={(e) => setScrapeUrl(e.target.value)}
+                placeholder="https://portablespas.co.nz"
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Max Pages to Scrape
+              </label>
+              <Input
+                type="number"
+                value={maxPages}
+                onChange={(e) => setMaxPages(parseInt(e.target.value) || 50)}
+                min="1"
+                max="500"
+                className="w-full"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Limit the number of pages to scrape (recommended: 50-100)
+              </p>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+              <div className="flex gap-2">
+                <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-yellow-900">
+                  <p className="font-semibold mb-1">Scraping Info</p>
+                  <p>
+                    This will crawl the website, extract all text content, convert it to Markdown,
+                    and automatically upload it to Pinecone. The process may take several minutes.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleScrapeWebsite}
+              disabled={!scrapeUrl || isScraping}
+              className="w-full"
+            >
+              {isScraping ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Scraping... This may take a few minutes
+                </>
+              ) : (
+                <>
+                  <Globe className="h-4 w-4 mr-2" />
+                  Scrape & Upload to Pinecone
                 </>
               )}
             </Button>
