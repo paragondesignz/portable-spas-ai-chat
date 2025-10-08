@@ -15,40 +15,11 @@ interface Message {
 }
 
 const STORAGE_KEY_MESSAGES = 'ps_chat_messages';
-const STORAGE_KEY_NAME = 'ps_user_name';
-
-// Extract name from common phrases
-function extractName(input: string): string {
-  const text = input.trim();
-  
-  // Common patterns people use when introducing themselves
-  const patterns = [
-    /^(?:I'm|I am|Im)\s+(.+)$/i,
-    /^(?:My name is|My name's)\s+(.+)$/i,
-    /^(?:It's|Its)\s+(.+)$/i,
-    /^(?:Call me|You can call me)\s+(.+)$/i,
-    /^(?:This is)\s+(.+)$/i,
-    /^(?:Name is|Name's)\s+(.+)$/i,
-  ];
-  
-  // Try each pattern
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match) {
-      return match[1].trim();
-    }
-  }
-  
-  // If no pattern matches, assume the whole input is the name
-  return text;
-}
 
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [userName, setUserName] = useState('');
-  const [askingForName, setAskingForName] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -58,50 +29,25 @@ export default function ChatInterface() {
   useEffect(() => {
     try {
       const savedMessages = localStorage.getItem(STORAGE_KEY_MESSAGES);
-      const savedName = localStorage.getItem(STORAGE_KEY_NAME);
-      
       if (savedMessages) {
         setMessages(JSON.parse(savedMessages));
-      } else if (savedName) {
-        setMessages([{
-          role: 'assistant',
-          content: `Welcome back, ${savedName}! 👋\n\nHow can I assist you today?`
-        }]);
-      } else {
-        setMessages([{
-          role: 'assistant',
-          content: 'Hello! Welcome to Portable Spas New Zealand. 👋\n\nBefore we start, may I know your name?'
-        }]);
-        setAskingForName(true);
-      }
-      
-      if (savedName) {
-        setUserName(savedName);
       }
     } catch (e) {
       console.warn('Could not load from localStorage:', e);
-      setMessages([{
-        role: 'assistant',
-        content: 'Hello! Welcome to Portable Spas New Zealand. 👋\n\nBefore we start, may I know your name?'
-      }]);
-      setAskingForName(true);
     }
     setIsInitialized(true);
   }, []);
 
-  // Save to localStorage when messages or userName change
+  // Save to localStorage when messages change
   useEffect(() => {
     if (isInitialized) {
       try {
         localStorage.setItem(STORAGE_KEY_MESSAGES, JSON.stringify(messages));
-        if (userName) {
-          localStorage.setItem(STORAGE_KEY_NAME, userName);
-        }
       } catch (e) {
         console.warn('Could not save to localStorage:', e);
       }
     }
-  }, [messages, userName, isInitialized]);
+  }, [messages, isInitialized]);
 
   // Scroll to bottom of chat smoothly
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
@@ -150,27 +96,11 @@ export default function ChatInterface() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!input.trim() || isLoading) return;
 
     const userInput = input.trim();
     setInput('');
-
-    // Handle name collection
-    if (askingForName) {
-      const extractedName = extractName(userInput);
-      setUserName(extractedName);
-      setMessages(prev => [
-        ...prev,
-        { role: 'user', content: userInput },
-        { 
-          role: 'assistant', 
-          content: `Great to meet you, ${extractedName}! 😊\n\nHow can I help you with our portable spas today?` 
-        }
-      ]);
-      setAskingForName(false);
-      return;
-    }
 
     const userMessage: Message = {
       role: 'user',
@@ -181,12 +111,7 @@ export default function ChatInterface() {
     setIsLoading(true);
 
     try {
-      // Add system context with user's name if available
-      const contextualMessages = userName ? [
-        { role: 'assistant', content: `[Context: The customer's name is ${userName}. Address them naturally by name when appropriate.]` },
-        ...messages,
-        userMessage
-      ] : [...messages, userMessage];
+      const contextualMessages = [...messages, userMessage];
 
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -225,35 +150,12 @@ export default function ChatInterface() {
   const handleClearChat = () => {
     if (confirm('Are you sure you want to clear your chat history?')) {
       localStorage.removeItem(STORAGE_KEY_MESSAGES);
-      
-      if (userName) {
-        setMessages([{
-          role: 'assistant',
-          content: `Chat cleared, ${userName}! 🔄\n\nHow can I help you today?`
-        }]);
-      } else {
-        setMessages([{
-          role: 'assistant',
-          content: 'Hello! Welcome to Portable Spas New Zealand. 👋\n\nBefore we start, may I know your name?'
-        }]);
-        setAskingForName(true);
-      }
+      setMessages([]);
     }
   };
 
-  const handleChangeName = () => {
-    const newName = prompt('What would you like me to call you?', userName);
-    if (newName && newName.trim()) {
-      setUserName(newName.trim());
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: `Got it! I'll call you ${newName.trim()} from now on. 😊`
-      }]);
-    }
-  };
-
-  // Show centered layout when no messages or only initial greeting
-  const showCenteredLayout = messages.length <= 1;
+  // Show centered layout when no messages
+  const showCenteredLayout = messages.length === 0;
 
   if (showCenteredLayout) {
     return (
@@ -261,16 +163,16 @@ export default function ChatInterface() {
         <div className="w-full max-w-3xl">
           {/* Large greeting */}
           <h1 className="text-5xl md:text-6xl font-normal text-gray-800 text-center mb-12">
-            {userName ? `Hey there, ${userName}` : 'Hey there'}
+            Hey there
           </h1>
-          
+
           {/* Centered input */}
           <form onSubmit={handleSubmit} className="mb-8">
             <div className="flex gap-3 items-center">
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={askingForName ? "What's your name?" : "How can I help you today?"}
+                placeholder="How can I help you today?"
                 disabled={isLoading}
                 className="flex-1 px-6 py-6 text-lg border-gray-300 rounded-3xl focus:ring-2 focus:ring-gray-400 focus:border-transparent"
               />
@@ -289,23 +191,6 @@ export default function ChatInterface() {
             </div>
           </form>
 
-          {/* Action buttons below input */}
-          <div className="flex gap-2 justify-center">
-            <button
-              onClick={handleClearChat}
-              className="text-sm px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-full text-gray-700 transition-colors"
-            >
-              Clear chat
-            </button>
-            {userName && (
-              <button
-                onClick={handleChangeName}
-                className="text-sm px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-full text-gray-700 transition-colors"
-              >
-                Change name
-              </button>
-            )}
-          </div>
         </div>
       </div>
     );
@@ -318,26 +203,14 @@ export default function ChatInterface() {
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold text-gray-800">Chat with us</h2>
-            <p className="text-sm text-gray-600">
-              {userName ? `Hi ${userName}!` : 'Portable Spas New Zealand'}
-            </p>
+            <p className="text-sm text-gray-600">Portable Spas New Zealand</p>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={handleClearChat}
-              className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg text-gray-600 transition-colors"
-            >
-              Clear chat
-            </button>
-            {userName && (
-              <button
-                onClick={handleChangeName}
-                className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg text-gray-600 transition-colors"
-              >
-                Change name
-              </button>
-            )}
-          </div>
+          <button
+            onClick={handleClearChat}
+            className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg text-gray-600 transition-colors"
+          >
+            Clear chat
+          </button>
         </div>
       </div>
 
