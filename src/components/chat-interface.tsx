@@ -103,13 +103,13 @@ export default function ChatInterface() {
     }
   }, [messages, userName, isInitialized]);
 
-  // Scroll to beginning of latest message
+  // Scroll to bottom of chat to show latest message
   const scrollToLatestMessage = (behavior: ScrollBehavior = 'smooth') => {
     const lastIndex = messages.length - 1;
     if (lastIndex >= 0 && messageRefs.current[lastIndex]) {
       messageRefs.current[lastIndex]?.scrollIntoView({
         behavior,
-        block: 'start'
+        block: 'end'
       });
     }
   };
