@@ -29,6 +29,7 @@ export default function AdminPage() {
   const [isScraping, setIsScraping] = useState(false);
   const [scrapeUrl, setScrapeUrl] = useState('https://portablespas.co.nz');
   const [maxPages, setMaxPages] = useState(200);
+  const [scrapeFileName, setScrapeFileName] = useState('');
 
   // Check if already authenticated
   useEffect(() => {
@@ -230,7 +231,11 @@ export default function AdminPage() {
           'Authorization': `Bearer ${password}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ url: scrapeUrl, maxPages })
+        body: JSON.stringify({
+          url: scrapeUrl,
+          maxPages,
+          fileName: scrapeFileName
+        })
       });
 
       if (!response.ok) {
@@ -396,9 +401,28 @@ export default function AdminPage() {
                 type="url"
                 value={scrapeUrl}
                 onChange={(e) => setScrapeUrl(e.target.value)}
-                placeholder="https://portablespas.co.nz"
+                placeholder="https://portablespas.co.nz or https://portablespas.co.nz/spas"
                 className="w-full"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter full site URL or specific directory (e.g., /spas, /accessories) to scrape only that section
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                File Name (Optional)
+              </label>
+              <Input
+                type="text"
+                value={scrapeFileName}
+                onChange={(e) => setScrapeFileName(e.target.value)}
+                placeholder="e.g., spas-catalog or accessories-info"
+                className="w-full"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Custom name to identify this content in Pinecone (auto-generated if blank)
+              </p>
             </div>
 
             <div>

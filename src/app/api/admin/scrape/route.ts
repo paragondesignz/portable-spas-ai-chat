@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { url, maxPages = 200 } = await req.json();
+    const { url, maxPages = 200, fileName } = await req.json();
 
     if (!url) {
       return NextResponse.json(
@@ -60,9 +60,50 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log(`Starting scrape of ${url} with max ${maxPages} pages...`);
+    // Parse URL to determine if we're scraping a specific directory
+    let startUrl = url;
+    let crawlPattern = url;
+
+    // If URL has a path (e.g., /spas), only crawl under that path
+    try {
+      const urlObj = new URL(url);
+      const baseDomain = `${urlObj.protocol}//${urlObj.hostname}`;
+      crawlPattern = url.endsWith('/') ? url + '*' : url + '/*';
+
+      console.log(`Starting scrape of ${url} with max ${maxPages} pages...`);
+      console.log(`Crawl pattern: ${crawlPattern}`);
+    } catch (e) {
+      console.log(`Starting scrape of ${url} with max ${maxPages} pages...`);
+    }
 
     // Step 1: Run Apify Website Content Crawler
+    const actorInput: any = {
+      startUrls: [{ url: startUrl }],
+      crawlerType: 'cheerio', // Fast HTTP crawler
+      maxCrawlPages: maxPages,
+      excludeUrlGlobs: [
+        '**/checkout/**',
+        '**/cart/**',
+        '**/account/**',
+        '**/login/**',
+        '**/*.pdf',
+        '**/*.jpg',
+        '**/*.png',
+      ],
+    };
+
+    // If scraping a specific directory, only include pages matching that pattern
+    try {
+      const urlObj = new URL(url);
+      if (urlObj.pathname !== '/' && urlObj.pathname !== '') {
+        // Only crawl URLs that start with this path
+        actorInput.includeUrlGlobs = [crawlPattern];
+        console.log(`Restricting crawl to pattern: ${crawlPattern}`);
+      }
+    } catch (e) {
+      // Invalid URL, continue without restriction
+    }
+
     const actorResponse = await fetch(
       `https://api.apify.com/v2/acts/apify~website-content-crawler/runs?token=${apifyApiToken}`,
       {
@@ -70,20 +111,7 @@ export async function POST(req: NextRequest) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          startUrls: [{ url }],
-          crawlerType: 'cheerio', // Fast HTTP crawler
-          maxCrawlPages: maxPages,
-          excludeUrlGlobs: [
-            '**/checkout/**',
-            '**/cart/**',
-            '**/account/**',
-            '**/login/**',
-            '**/*.pdf',
-            '**/*.jpg',
-            '**/*.png',
-          ],
-        }),
+        body: JSON.stringify(actorInput),
       }
     );
 
@@ -172,10 +200,29 @@ export async function POST(req: NextRequest) {
 
     // Step 5: Upload to Pinecone
     const blob = new Blob([markdown], { type: 'text/markdown' });
-    const fileName = `website-scrape-${new Date().toISOString().split('T')[0]}.md`;
+
+    // Generate filename - use custom name if provided, otherwise generate one
+    let finalFileName: string;
+    if (fileName && fileName.trim()) {
+      // Clean the filename
+      finalFileName = fileName.trim().replace(/[^a-zA-Z0-9_-]/g, '-');
+      if (!finalFileName.endsWith('.md')) {
+        finalFileName += '.md';
+      }
+    } else {
+      // Generate default filename with date
+      const dateStr = new Date().toISOString().split('T')[0];
+      try {
+        const urlObj = new URL(url);
+        const pathPart = urlObj.pathname.replace(/\//g, '-').replace(/^-|-$/g, '') || 'home';
+        finalFileName = `scrape-${pathPart}-${dateStr}.md`;
+      } catch (e) {
+        finalFileName = `website-scrape-${dateStr}.md`;
+      }
+    }
 
     const formData = new FormData();
-    formData.append('file', blob, fileName);
+    formData.append('file', blob, finalFileName);
 
     const uploadResponse = await fetch(
       `https://prod-1-data.ke.pinecone.io/assistant/files/${assistantName}`,
@@ -207,7 +254,7 @@ export async function POST(req: NextRequest) {
         pagesScraped: scrapedData.length,
         contentSize: markdown.length,
         pineconeFileId: uploadData.id,
-        fileName: fileName,
+        fileName: finalFileName,
       },
     }, { headers: corsHeaders });
 
