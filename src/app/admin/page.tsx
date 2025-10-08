@@ -28,7 +28,7 @@ export default function AdminPage() {
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const [isScraping, setIsScraping] = useState(false);
   const [scrapeUrl, setScrapeUrl] = useState('https://portablespas.co.nz');
-  const [maxPages, setMaxPages] = useState(50);
+  const [maxPages, setMaxPages] = useState(200);
 
   // Check if already authenticated
   useEffect(() => {
@@ -408,13 +408,13 @@ export default function AdminPage() {
               <Input
                 type="number"
                 value={maxPages}
-                onChange={(e) => setMaxPages(parseInt(e.target.value) || 50)}
+                onChange={(e) => setMaxPages(parseInt(e.target.value) || 200)}
                 min="1"
-                max="500"
+                max="1000"
                 className="w-full"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Limit the number of pages to scrape (recommended: 50-100)
+                Limit the number of pages to scrape (recommended: 200-500 for full site coverage)
               </p>
             </div>
 

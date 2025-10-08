@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { url, maxPages = 50 } = await req.json();
+    const { url, maxPages = 200 } = await req.json();
 
     if (!url) {
       return NextResponse.json(
