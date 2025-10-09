@@ -10,7 +10,7 @@ interface ShopifyProduct {
   body_html: string;
   vendor: string;
   product_type: string;
-  tags: string;
+  tags: string | string[]; // Can be string or array
   variants: Array<{
     id: number;
     title: string;
@@ -99,6 +99,16 @@ function convertShopifyProducts(shopifyProducts: ShopifyProduct[]): Product[] {
         }))
       : undefined;
 
+    // Handle tags - can be string or array
+    let tags: string[] = [];
+    if (sp.tags) {
+      if (typeof sp.tags === 'string') {
+        tags = sp.tags.split(',').map(t => t.trim()).filter(t => t.length > 0);
+      } else if (Array.isArray(sp.tags)) {
+        tags = sp.tags;
+      }
+    }
+
     return {
       title: sp.title,
       link: `https://portablespas.co.nz/products/${sp.handle}`,
@@ -107,7 +117,7 @@ function convertShopifyProducts(shopifyProducts: ShopifyProduct[]): Product[] {
       type: sp.product_type || 'Other',
       vendor: sp.vendor,
       description: stripHtml(sp.body_html),
-      tags: sp.tags ? sp.tags.split(',').map(t => t.trim()) : [],
+      tags,
       variants
     };
   });
