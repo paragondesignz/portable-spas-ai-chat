@@ -239,8 +239,24 @@ export default function ChatInterface() {
                     <ReactMarkdown
                       components={{
                         a: ({ node, href, children, ...props }) => {
+                          // Handle different link types
+                          if (!href) return <a {...props}>{children}</a>;
+
+                          // mailto links open in same window
+                          if (href.startsWith('mailto:')) {
+                            return (
+                              <a
+                                href={href}
+                                className="text-blue-600 hover:underline font-medium underline"
+                                {...props}
+                              >
+                                {children}
+                              </a>
+                            );
+                          }
+
                           // Check if link is internal (portablespas.co.nz)
-                          const isInternal = href ? (() => {
+                          const isInternal = (() => {
                             try {
                               const url = new URL(href, window.location.href);
                               return url.hostname.includes('portablespas.co.nz');
@@ -248,20 +264,20 @@ export default function ChatInterface() {
                               // If URL parsing fails, assume it's a relative URL (internal)
                               return !href.startsWith('http');
                             }
-                          })() : false;
-                          
-                              return (
-                                <a
-                                  href={href}
-                                  target={isInternal ? '_parent' : '_blank'}
-                                  rel={isInternal ? undefined : 'noopener noreferrer'}
-                                  className="text-blue-600 hover:underline font-medium underline"
-                                  {...props}
-                                >
-                                  {children}
-                                </a>
-                              );
-                            },
+                          })();
+
+                          return (
+                            <a
+                              href={href}
+                              target={isInternal ? '_parent' : '_blank'}
+                              rel={isInternal ? undefined : 'noopener noreferrer'}
+                              className="text-blue-600 hover:underline font-medium underline"
+                              {...props}
+                            >
+                              {children}
+                            </a>
+                          );
+                        },
                         p: ({ node, ...props }) => (
                           <p {...props} className="mb-2 last:mb-0" />
                         ),

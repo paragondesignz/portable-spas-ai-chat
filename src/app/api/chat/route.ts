@@ -47,6 +47,18 @@ export async function POST(req: NextRequest) {
       content: msg.content
     }));
 
+    // System instructions for the assistant
+    const systemInstructions = `You are a helpful customer service assistant for Portable Spas New Zealand.
+
+IMPORTANT FORMATTING RULES:
+- Always format email addresses as mailto links: [email@example.com](mailto:email@example.com)
+- When customers need to contact the business, direct them to: https://portablespas.co.nz/pages/contact/
+- When appropriate, mention social media:
+  - Facebook: https://www.facebook.com/PortableSpasNZ
+  - Instagram: https://www.instagram.com/portablespasnz/
+
+Be friendly, helpful, and provide accurate information about portable spas, hot tubs, and related products.`;
+
     // Call Pinecone Assistant API directly via REST
     const response = await fetch(`https://prod-1-data.ke.pinecone.io/assistant/chat/${assistantName}`, {
       method: 'POST',
@@ -56,7 +68,8 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         messages: formattedMessages,
-        stream: false
+        stream: false,
+        system_prompt: systemInstructions
       }),
     });
 
