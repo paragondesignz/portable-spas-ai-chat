@@ -1,0 +1,264 @@
+<!-- SHOPIFY CHAT MODAL - Floating button that opens chat in a modal -->
+<!-- This creates a floating chat button in the bottom-right corner -->
+<!-- Click it to open the chat interface in a nice modal overlay -->
+<!-- Copy this into your Shopify theme (e.g., in theme.liquid before </body>) -->
+
+<!-- Floating Chat Button -->
+<button id="ps-chat-button" aria-label="Open chat">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+  </svg>
+  <span id="ps-chat-button-text">Chat with us</span>
+</button>
+
+<!-- Chat Modal Overlay -->
+<div id="ps-chat-modal" style="display: none;">
+  <div id="ps-chat-modal-backdrop"></div>
+  <div id="ps-chat-modal-container">
+    <div id="ps-chat-modal-header">
+      <h3>Chat with Portable Spas</h3>
+      <button id="ps-chat-close-button" aria-label="Close chat">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <iframe
+      src="https://portable-spas-ai-chat.vercel.app"
+      id="ps-chat-iframe"
+      title="Portable Spas Chat Assistant"
+      allow="clipboard-write"
+    ></iframe>
+  </div>
+</div>
+
+<style>
+  /* Floating Chat Button */
+  #ps-chat-button {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #1f2937;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    z-index: 2147483647;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  #ps-chat-button:hover {
+    background: #374151;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+  }
+
+  #ps-chat-button svg {
+    flex-shrink: 0;
+  }
+
+  /* Hide text on mobile, show on desktop */
+  @media (max-width: 640px) {
+    #ps-chat-button {
+      padding: 16px;
+      border-radius: 50%;
+    }
+    #ps-chat-button-text {
+      display: none;
+    }
+  }
+
+  /* Modal Overlay */
+  #ps-chat-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2147483647;
+    display: flex;
+    isolation: isolate;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  /* Backdrop */
+  #ps-chat-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    animation: ps-fade-in 0.2s ease;
+  }
+
+  /* Modal Container */
+  #ps-chat-modal-container {
+    position: relative;
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 900px;
+    height: 90vh;
+    max-height: 800px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: ps-slide-up 0.3s ease;
+    overflow: hidden;
+  }
+
+  /* Modal Header */
+  #ps-chat-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    flex-shrink: 0;
+  }
+
+  #ps-chat-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  /* Close Button */
+  #ps-chat-close-button {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    transition: all 0.2s ease;
+  }
+
+  #ps-chat-close-button:hover {
+    background: #f3f4f6;
+    color: #1f2937;
+  }
+
+  /* Chat Iframe */
+  #ps-chat-iframe {
+    flex: 1;
+    width: 100%;
+    border: none;
+    display: block;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 640px) {
+    #ps-chat-modal {
+      padding: 0;
+    }
+
+    #ps-chat-modal-container {
+      border-radius: 0;
+      max-width: 100%;
+      height: 100vh;
+      max-height: 100vh;
+    }
+
+    #ps-chat-modal-header {
+      padding: 16px 20px;
+    }
+
+    #ps-chat-modal-header h3 {
+      font-size: 16px;
+    }
+  }
+
+  /* Animations */
+  @keyframes ps-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes ps-slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Prevent body scroll when modal is open */
+  body.ps-chat-modal-open {
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  (function() {
+    const button = document.getElementById('ps-chat-button');
+    const modal = document.getElementById('ps-chat-modal');
+    const backdrop = document.getElementById('ps-chat-modal-backdrop');
+    const closeButton = document.getElementById('ps-chat-close-button');
+
+    // Open modal
+    button.addEventListener('click', function() {
+      modal.style.display = 'flex';
+      document.body.classList.add('ps-chat-modal-open');
+    });
+
+    // Close modal
+    function closeModal() {
+      modal.style.display = 'none';
+      document.body.classList.remove('ps-chat-modal-open');
+    }
+
+    closeButton.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && modal.style.display === 'flex') {
+        closeModal();
+      }
+    });
+  })();
+</script>
+
+<!--
+FEATURES:
+1. Floating button in bottom-right corner (shows icon + text on desktop, icon only on mobile)
+2. Smooth modal animation when opened
+3. Click backdrop or close button to dismiss
+4. Press Escape to close
+5. Chat state persists when closing and reopening
+6. Responsive design - full screen on mobile, centered modal on desktop
+7. Auto-updates when you deploy changes to Vercel
+
+CUSTOMIZATION:
+- Change button colors by editing #ps-chat-button background color
+- Adjust button position by changing bottom/right values
+- Modify modal size by changing max-width and max-height
+- Update button text in the HTML
+-->

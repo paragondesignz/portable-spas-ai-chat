@@ -1,0 +1,68 @@
+<!-- SIMPLE SHOPIFY CHAT EMBED - Just an iframe -->
+<!-- This is the easiest way to embed your chat - no maintenance needed! -->
+<!-- Copy this into your Shopify theme wherever you want the chat to appear -->
+
+<div id="ps-chat-embed-container">
+  <iframe
+    src="https://portable-spas-ai-chat.vercel.app"
+    id="ps-chat-iframe"
+    title="Portable Spas Chat Assistant"
+    allow="clipboard-write"
+  ></iframe>
+</div>
+
+<style>
+  #ps-chat-embed-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    background: white;
+  }
+
+  #ps-chat-iframe {
+    width: 100%;
+    height: 600px;
+    border: none;
+    border-radius: 0;
+    display: block;
+  }
+
+  /* Responsive height adjustments */
+  @media (min-width: 768px) {
+    #ps-chat-iframe {
+      height: 700px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    #ps-chat-iframe {
+      height: 800px;
+    }
+  }
+
+  /* Optional: Full-page chat (remove max-width and adjust height) */
+  /*
+  #ps-chat-embed-container {
+    max-width: none;
+  }
+
+  #ps-chat-iframe {
+    height: 100vh;
+    min-height: 600px;
+  }
+  */
+</style>
+
+<!--
+BENEFITS OF THIS APPROACH:
+1. Updates automatically when you deploy changes to Vercel
+2. No JavaScript to maintain in Shopify
+3. No duplicate code to keep in sync
+4. Smaller, cleaner Shopify template
+5. Chat state persists across Shopify pages
+
+CUSTOMIZATION:
+- Adjust iframe height in the <style> section above
+- Uncomment the "Full-page chat" styles for a full-screen experience
+- Add padding/margins to #ps-chat-embed-container as needed
+-->

@@ -253,7 +253,7 @@ export default function ChatInterface() {
                               return (
                                 <a
                                   href={href}
-                                  target={isInternal ? '_self' : '_blank'}
+                                  target={isInternal ? '_parent' : '_blank'}
                                   rel={isInternal ? undefined : 'noopener noreferrer'}
                                   className="text-blue-600 hover:underline font-medium underline"
                                   {...props}
