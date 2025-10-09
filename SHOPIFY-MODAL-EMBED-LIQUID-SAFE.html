@@ -36,6 +36,7 @@
   </div>
 </div>
 
+{% raw %}
 <style>
   /* Floating Chat Button */
   #ps-chat-button {
@@ -244,10 +245,13 @@
   (function() {
     'use strict';
 
-    // Wait for everything else to load first to avoid conflicts
-    window.addEventListener('load', function() {
-      setTimeout(initPSChat, 200);
-    });
+    // Wait for DOM to be fully loaded to avoid conflicts
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPSChat);
+    } else {
+      // DOM already loaded
+      initPSChat();
+    }
 
     function initPSChat() {
       try {
@@ -300,20 +304,4 @@
     }
   })();
 </script>
-
-<!--
-FEATURES:
-1. Floating button in bottom-right corner (shows icon + text on desktop, icon only on mobile)
-2. Smooth modal animation when opened
-3. Click backdrop or close button to dismiss
-4. Press Escape to close
-5. Chat state persists when closing and reopening
-6. Responsive design - full screen on mobile, centered modal on desktop
-7. Auto-updates when you deploy changes to Vercel
-
-CUSTOMIZATION:
-- Change button colors by editing #ps-chat-button background color
-- Adjust button position by changing bottom/right values
-- Modify modal size by changing max-width and max-height
-- Update button text in the HTML
--->
+{% endraw %}
