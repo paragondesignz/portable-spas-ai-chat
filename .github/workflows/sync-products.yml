@@ -1,0 +1,39 @@
+name: Sync Product Catalog Daily
+
+on:
+  schedule:
+    # Run at 2 AM NZ time (1 PM UTC previous day) every day
+    - cron: '0 13 * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  sync-products:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sync Products from Shopify to Pinecone
+        run: |
+          echo "Syncing product catalog from Shopify..."
+
+          response=$(curl -s -w "\n%{http_code}" -X POST "https://portable-spas-ai-chat.vercel.app/api/admin/sync-products" \
+            -H "Authorization: Bearer ${{ secrets.ADMIN_PASSWORD }}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response: $body"
+
+          if [ "$http_code" -eq 200 ]; then
+            echo "✅ Product sync successful!"
+            echo "$body" | jq '.stats'
+          else
+            echo "❌ Product sync failed with status $http_code"
+            echo "$body"
+            exit 1
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Product sync failed. Check the logs above for details."
