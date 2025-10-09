@@ -31,6 +31,9 @@ export default function AdminPage() {
   const [maxPages, setMaxPages] = useState(200);
   const [scrapeFileName, setScrapeFileName] = useState('');
   const [isSyncingProducts, setIsSyncingProducts] = useState(false);
+  const [quickText, setQuickText] = useState('');
+  const [quickTextTitle, setQuickTextTitle] = useState('');
+  const [isUploadingText, setIsUploadingText] = useState(false);
 
   // Check if already authenticated
   useEffect(() => {
@@ -287,6 +290,57 @@ export default function AdminPage() {
     }
   };
 
+  const handleQuickTextUpload = async () => {
+    if (!quickText.trim()) {
+      setError('Please enter some text');
+      return;
+    }
+
+    if (!quickTextTitle.trim()) {
+      setError('Please enter a title');
+      return;
+    }
+
+    setIsUploadingText(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      // Create markdown content
+      const markdown = `# ${quickTextTitle}\n\n${quickText}`;
+      const blob = new Blob([markdown], { type: 'text/markdown' });
+      const fileName = `${quickTextTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.md`;
+
+      const formData = new FormData();
+      formData.append('file', blob, fileName);
+
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${password}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Upload failed');
+      }
+
+      const data = await response.json();
+      setSuccess(`Text uploaded successfully as "${fileName}"!`);
+      setQuickText('');
+      setQuickTextTitle('');
+
+      // Reload files
+      await loadFiles();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsUploadingText(false);
+    }
+  };
+
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -403,6 +457,79 @@ export default function AdminPage() {
               className="w-full"
             >
               {isUploading ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload to Pinecone
+                </>
+              )}
+            </Button>
+          </div>
+        </Card>
+
+        {/* Quick Text Entry Section */}
+        <Card className="p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Quick Text Entry
+          </h2>
+
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded p-3">
+              <div className="flex gap-2">
+                <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-900">
+                  <p className="font-semibold mb-1">Add Quick Information</p>
+                  <p>
+                    Quickly add important information to Pinecone without creating a file first.
+                    The text will be saved as a Markdown file and uploaded automatically.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Title
+              </label>
+              <Input
+                type="text"
+                value={quickTextTitle}
+                onChange={(e) => setQuickTextTitle(e.target.value)}
+                placeholder="e.g., Delivery Information or Holiday Hours"
+                className="w-full"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                This will be used as the heading and filename
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Content
+              </label>
+              <textarea
+                value={quickText}
+                onChange={(e) => setQuickText(e.target.value)}
+                placeholder="Enter any important information you want the AI to know about..."
+                rows={6}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-y"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                You can use Markdown formatting if you like
+              </p>
+            </div>
+
+            <Button
+              onClick={handleQuickTextUpload}
+              disabled={!quickText.trim() || !quickTextTitle.trim() || isUploadingText}
+              className="w-full"
+            >
+              {isUploadingText ? (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                   Uploading...
