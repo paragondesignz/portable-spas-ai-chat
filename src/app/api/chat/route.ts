@@ -74,7 +74,7 @@ Be friendly, helpful, and provide accurate information about portable spas, hot 
       body: JSON.stringify({
         messages: formattedMessages,
         stream: false,
-        system_prompt: systemInstructions
+        instructions: systemInstructions
       }),
     });
 
