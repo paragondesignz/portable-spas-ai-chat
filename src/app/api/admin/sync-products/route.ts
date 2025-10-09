@@ -262,10 +262,12 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error('Product sync error:', error);
+    console.error('Error stack:', error.stack);
     return NextResponse.json(
       {
         error: 'Failed to sync product catalog',
-        details: error.message
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       },
       { status: 500 }
     );
