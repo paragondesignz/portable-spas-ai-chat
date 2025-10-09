@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Upload, Trash2, RefreshCw, Lock, FileText, AlertCircle, Eye, X, Info, Globe } from 'lucide-react';
+import { Upload, Trash2, RefreshCw, Lock, FileText, AlertCircle, Eye, X, Info, Globe, ShoppingCart } from 'lucide-react';
 
 interface FileInfo {
   id: string;
@@ -30,6 +30,7 @@ export default function AdminPage() {
   const [scrapeUrl, setScrapeUrl] = useState('https://portablespas.co.nz');
   const [maxPages, setMaxPages] = useState(200);
   const [scrapeFileName, setScrapeFileName] = useState('');
+  const [isSyncingProducts, setIsSyncingProducts] = useState(false);
 
   // Check if already authenticated
   useEffect(() => {
@@ -255,6 +256,37 @@ export default function AdminPage() {
     }
   };
 
+  const handleSyncProducts = async () => {
+    setIsSyncingProducts(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await fetch('/api/admin/sync-products', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${password}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Product sync failed');
+      }
+
+      const data = await response.json();
+      setSuccess(`Successfully synced ${data.stats.productsFound} products from Shopify! File: ${data.stats.fileName}`);
+
+      // Reload files
+      await loadFiles();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsSyncingProducts(false);
+    }
+  };
+
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -379,6 +411,47 @@ export default function AdminPage() {
                 <>
                   <Upload className="h-4 w-4 mr-2" />
                   Upload to Pinecone
+                </>
+              )}
+            </Button>
+          </div>
+        </Card>
+
+        {/* Product Catalog Sync Section */}
+        <Card className="p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <ShoppingCart className="h-5 w-5" />
+            Sync Product Catalog
+          </h2>
+
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded p-3">
+              <div className="flex gap-2">
+                <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-900">
+                  <p className="font-semibold mb-1">Shopify Product Feed</p>
+                  <p>
+                    This will fetch your current published products from Shopify (https://portablespas.co.nz/collections/all.atom),
+                    convert them to a structured markdown catalog, and upload to Pinecone. Only active/published products are included.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleSyncProducts}
+              disabled={isSyncingProducts}
+              className="w-full"
+            >
+              {isSyncingProducts ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Syncing Products...
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Sync Products from Shopify
                 </>
               )}
             </Button>
