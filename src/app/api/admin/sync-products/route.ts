@@ -132,6 +132,12 @@ function convertToMarkdown(products: Product[]): string {
   md += `Total products: ${products.length}\n\n`;
   md += `---\n\n`;
 
+  // List of common MSpa models for universal products
+  const commonModels = [
+    'Bergen', 'Tekapo', 'Oslo', 'Camaro', 'Aurora', 'Carlton', 'Mono',
+    'Tuscany', 'Duet', 'Naval', 'Tribeca', 'Silver Cloud', 'Ottoman', 'SoHo'
+  ];
+
   // Group by type
   const byType: { [key: string]: Product[] } = {};
   for (const product of products) {
@@ -180,7 +186,20 @@ function convertToMarkdown(products: Product[]): string {
       }
 
       if (product.description) {
-        md += `${product.description}\n\n`;
+        let description = product.description;
+
+        // Check if this is a universal product that fits all models
+        const isUniversal = description.toLowerCase().includes('fits all') ||
+                           description.toLowerCase().includes('all mspa') ||
+                           description.toLowerCase().includes('all models') ||
+                           description.toLowerCase().includes('all sizes');
+
+        if (isUniversal) {
+          // Add explicit model compatibility list for better search matching
+          description += `\n\n**Compatible Models:** ${commonModels.join(', ')}`;
+        }
+
+        md += `${description}\n\n`;
       }
 
       md += `---\n\n`;
