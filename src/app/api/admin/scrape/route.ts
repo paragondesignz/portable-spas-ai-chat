@@ -81,6 +81,7 @@ export async function POST(req: NextRequest) {
       startUrls: [{ url: startUrl }],
       crawlerType: 'cheerio', // Fast HTTP crawler
       maxCrawlPages: maxPages,
+      maxCrawlDepth: 10, // Allow deep crawling
       excludeUrlGlobs: [
         '**/checkout/**',
         '**/cart/**',
@@ -89,16 +90,28 @@ export async function POST(req: NextRequest) {
         '**/*.pdf',
         '**/*.jpg',
         '**/*.png',
+        '**/*.gif',
+        '**/*.svg',
       ],
+      // Force link extraction
+      linkSelector: 'a[href]',
+      // Follow all links on the same domain
+      maxSessionRotations: 10,
     };
 
     // If scraping a specific directory, only include pages matching that pattern
     try {
       const urlObj = new URL(url);
       if (urlObj.pathname !== '/' && urlObj.pathname !== '') {
-        // Only crawl URLs that start with this path
-        actorInput.includeUrlGlobs = [crawlPattern];
-        console.log(`Restricting crawl to pattern: ${crawlPattern}`);
+        // For docs sites, include both the base pattern and common doc patterns
+        const baseDomain = `${urlObj.protocol}//${urlObj.hostname}`;
+        const patterns = [
+          crawlPattern,
+          `${baseDomain}/a/docs/**`, // Include all docs paths
+          `${baseDomain}/a/docs/docs-category/**`, // Category pages
+        ];
+        actorInput.includeUrlGlobs = patterns;
+        console.log(`Restricting crawl to patterns:`, patterns);
       }
     } catch (e) {
       // Invalid URL, continue without restriction
