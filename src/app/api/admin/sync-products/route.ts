@@ -239,16 +239,19 @@ export async function POST(req: NextRequest) {
     console.log('Uploading to Pinecone...');
     const fileName = `product-catalog-${new Date().toISOString().split('T')[0]}.md`;
 
+    // Create FormData for Pinecone API (same format as upload endpoint)
+    const formData = new FormData();
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    formData.append('file', blob, fileName);
+
     const uploadResponse = await fetch(
       `https://prod-1-data.ke.pinecone.io/assistant/files/${assistantName}`,
       {
         method: 'POST',
         headers: {
           'Api-Key': apiKey,
-          'Content-Type': 'text/plain',
-          'X-Pinecone-Filename': fileName,
         },
-        body: markdown,
+        body: formData,
       }
     );
 
