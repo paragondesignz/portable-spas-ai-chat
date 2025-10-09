@@ -4,11 +4,14 @@
 <!-- Copy this into your Shopify theme (e.g., in theme.liquid before </body>) -->
 
 <!-- Floating Chat Button -->
-<button id="ps-chat-button" aria-label="Open chat">
+<button id="ps-chat-button" aria-label="Open AI Support Assistant">
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
   </svg>
-  <span id="ps-chat-button-text">Chat with us</span>
+  <div id="ps-chat-button-text">
+    <div id="ps-chat-button-title">AI Support Assistant</div>
+    <div id="ps-chat-button-desc">Ask me anything</div>
+  </div>
 </button>
 
 <!-- Chat Modal Overlay -->
@@ -16,7 +19,7 @@
   <div id="ps-chat-modal-backdrop"></div>
   <div id="ps-chat-modal-container">
     <div id="ps-chat-modal-header">
-      <h3>Chat with Portable Spas</h3>
+      <h3>AI Support Assistant</h3>
       <button id="ps-chat-close-button" aria-label="Close chat">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -64,6 +67,26 @@
 
   #ps-chat-button svg {
     flex-shrink: 0;
+  }
+
+  #ps-chat-button-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  #ps-chat-button-title {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  #ps-chat-button-desc {
+    font-size: 12px;
+    font-weight: 400;
+    opacity: 0.9;
+    line-height: 1.2;
   }
 
   /* Hide text on mobile, show on desktop */
