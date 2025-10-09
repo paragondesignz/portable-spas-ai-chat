@@ -3,6 +3,22 @@ import { NextRequest, NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes for processing
 
+interface ShopifyProduct {
+  id: number;
+  title: string;
+  handle: string;
+  body_html: string;
+  vendor: string;
+  product_type: string;
+  tags: string;
+  variants: Array<{
+    id: number;
+    title: string;
+    price: string;
+    sku: string;
+  }>;
+}
+
 interface Product {
   title: string;
   link: string;
@@ -12,19 +28,16 @@ interface Product {
   vendor: string;
   description: string;
   tags: string[];
+  variants?: Array<{
+    title: string;
+    price: string;
+    sku: string;
+  }>;
 }
-
-// XML namespaces
-const NAMESPACES = {
-  atom: 'http://www.w3.org/2005/Atom',
-  s: 'http://jadedpixel.com/-/spec/shopify'
-};
 
 function stripHtml(text: string): string {
   if (!text) return '';
 
-  // Remove CDATA
-  text = text.replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1');
   // Remove HTML tags
   text = text.replace(/<[^>]+>/g, '');
   // Clean up entities
@@ -33,78 +46,71 @@ function stripHtml(text: string): string {
   text = text.replace(/&lt;/g, '<');
   text = text.replace(/&gt;/g, '>');
   text = text.replace(/&quot;/g, '"');
+  text = text.replace(/&#39;/g, "'");
   // Clean up whitespace
   text = text.replace(/\s+/g, ' ');
   return text.trim();
 }
 
-function extractDescription(summary: string): string {
-  if (!summary) return '';
+async function fetchAllProducts(): Promise<ShopifyProduct[]> {
+  const allProducts: ShopifyProduct[] = [];
+  let page = 1;
+  const limit = 250; // Max allowed by Shopify
 
-  // Try to extract text from the second table cell (description area)
-  const match = summary.match(/<td colspan="2">(.*?)<\/td>/s);
-  if (match) {
-    let desc = stripHtml(match[1]);
-    // Remove "Vendor:", "Type:", "Price:" lines if present
-    desc = desc.replace(/(Vendor:|Type:|Price:).*?(\n|$)/g, '');
-    return desc.trim();
+  while (true) {
+    const url = `https://portablespas.co.nz/products.json?limit=${limit}&page=${page}`;
+    console.log(`Fetching page ${page}...`);
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch products (page ${page})`);
+    }
+
+    const data = await response.json();
+    const products = data.products || [];
+
+    if (products.length === 0) {
+      break; // No more products
+    }
+
+    allProducts.push(...products);
+
+    if (products.length < limit) {
+      break; // Last page
+    }
+
+    page++;
   }
 
-  return stripHtml(summary);
+  return allProducts;
 }
 
-function parseAtomFeed(xml: string): Product[] {
-  const products: Product[] = [];
+function convertShopifyProducts(shopifyProducts: ShopifyProduct[]): Product[] {
+  return shopifyProducts.map(sp => {
+    // Get primary variant (usually the first one, or cheapest)
+    const primaryVariant = sp.variants[0];
 
-  // Extract all entry elements using regex (simple XML parsing)
-  const entryMatches = xml.matchAll(/<entry>(.*?)<\/entry>/gs);
+    // Get all variant info for products with multiple variants
+    const variants = sp.variants.length > 1
+      ? sp.variants.map(v => ({
+          title: v.title !== 'Default Title' ? v.title : '',
+          price: v.price,
+          sku: v.sku
+        }))
+      : undefined;
 
-  for (const match of entryMatches) {
-    const entry = match[1];
-
-    // Extract fields
-    const titleMatch = entry.match(/<title>(.*?)<\/title>/s);
-    const linkMatch = entry.match(/<link[^>]*href="([^"]*)"/);
-    const summaryMatch = entry.match(/<summary[^>]*>(.*?)<\/summary>/s);
-    const typeMatch = entry.match(/<s:type>(.*?)<\/s:type>/);
-    const vendorMatch = entry.match(/<s:vendor>(.*?)<\/s:vendor>/);
-
-    // Extract variant info (price and SKU)
-    const variantMatch = entry.match(/<s:variant>(.*?)<\/s:variant>/s);
-    let price = null;
-    let sku = null;
-
-    if (variantMatch) {
-      const variant = variantMatch[1];
-      const priceMatch = variant.match(/<s:price[^>]*>(.*?)<\/s:price>/);
-      const skuMatch = variant.match(/<s:sku>(.*?)<\/s:sku>/);
-
-      if (priceMatch) price = priceMatch[1].trim();
-      if (skuMatch && skuMatch[1].trim()) sku = skuMatch[1].trim();
-    }
-
-    // Extract tags
-    const tags: string[] = [];
-    const tagMatches = entry.matchAll(/<s:tag>(.*?)<\/s:tag>/g);
-    for (const tagMatch of tagMatches) {
-      tags.push(tagMatch[1].trim());
-    }
-
-    const product: Product = {
-      title: titleMatch ? titleMatch[1].trim() : 'Unknown',
-      link: linkMatch ? linkMatch[1] : '',
-      price,
-      sku,
-      type: typeMatch ? typeMatch[1].trim() : 'Other',
-      vendor: vendorMatch ? vendorMatch[1].trim() : '',
-      description: summaryMatch ? extractDescription(summaryMatch[1]) : '',
-      tags
+    return {
+      title: sp.title,
+      link: `https://portablespas.co.nz/products/${sp.handle}`,
+      price: primaryVariant?.price || null,
+      sku: primaryVariant?.sku || null,
+      type: sp.product_type || 'Other',
+      vendor: sp.vendor,
+      description: stripHtml(sp.body_html),
+      tags: sp.tags ? sp.tags.split(',').map(t => t.trim()) : [],
+      variants
     };
-
-    products.push(product);
-  }
-
-  return products;
+  });
 }
 
 function convertToMarkdown(products: Product[]): string {
@@ -119,10 +125,11 @@ function convertToMarkdown(products: Product[]): string {
   // Group by type
   const byType: { [key: string]: Product[] } = {};
   for (const product of products) {
-    if (!byType[product.type]) {
-      byType[product.type] = [];
+    const type = product.type || 'Other';
+    if (!byType[type]) {
+      byType[type] = [];
     }
-    byType[product.type].push(product);
+    byType[type].push(product);
   }
 
   // Sort types and output
@@ -142,6 +149,20 @@ function convertToMarkdown(products: Product[]): string {
 
       if (product.sku) {
         md += `**SKU:** ${product.sku}\n\n`;
+      }
+
+      // Show variants if product has multiple options
+      if (product.variants && product.variants.length > 0) {
+        md += `**Variants:**\n`;
+        for (const variant of product.variants) {
+          const variantName = variant.title || 'Standard';
+          md += `- ${variantName}: $${variant.price} NZD`;
+          if (variant.sku) {
+            md += ` (SKU: ${variant.sku})`;
+          }
+          md += `\n`;
+        }
+        md += `\n`;
       }
 
       if (product.tags.length > 0) {
@@ -190,20 +211,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fetch the product feed
-    console.log('Fetching product feed from Shopify...');
-    const feedResponse = await fetch('https://portablespas.co.nz/collections/all.atom');
+    // Fetch all products from Shopify JSON API
+    console.log('Fetching products from Shopify...');
+    const shopifyProducts = await fetchAllProducts();
+    console.log(`Found ${shopifyProducts.length} products from Shopify`);
 
-    if (!feedResponse.ok) {
-      throw new Error('Failed to fetch product feed');
-    }
-
-    const feedXml = await feedResponse.text();
-
-    // Parse the feed
-    console.log('Parsing product feed...');
-    const products = parseAtomFeed(feedXml);
-    console.log(`Found ${products.length} products`);
+    // Convert to our format
+    console.log('Converting products...');
+    const products = convertShopifyProducts(shopifyProducts);
+    console.log(`Converted ${products.length} products`);
 
     // Convert to markdown
     console.log('Converting to markdown...');
