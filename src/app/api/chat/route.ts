@@ -57,6 +57,9 @@ IMPORTANT FORMATTING RULES:
   - Facebook: https://www.facebook.com/PortableSpasNZ
   - Instagram: https://www.instagram.com/portablespasnz/
 
+HELPFUL RESOURCES:
+- For MSpa owners seeking help, guides, and troubleshooting, direct them to the MSpa Help Centre: https://portablespas.co.nz/a/docs
+
 Be friendly, helpful, and provide accurate information about portable spas, hot tubs, and related products.`;
 
     // Call Pinecone Assistant API directly via REST
