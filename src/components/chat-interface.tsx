@@ -162,9 +162,19 @@ export default function ChatInterface() {
       <div className="w-full min-h-screen flex flex-col items-center justify-center bg-white px-4">
         <div className="w-full max-w-3xl">
           {/* Large greeting */}
-          <h1 className="text-5xl md:text-6xl font-normal text-gray-800 text-center mb-12">
+          <h1 className="text-5xl md:text-6xl font-normal text-gray-800 text-center mb-6">
             Hey there
           </h1>
+
+          {/* Description */}
+          <div className="text-center mb-12 px-4">
+            <p className="text-gray-600 text-base leading-relaxed mb-3">
+              I'm your MSpa specialist assistant, here to provide expert guidance on finding the perfect portable spa for your home. Whether you're exploring options, need setup advice, have water care questions, or require troubleshooting support, I'm available to help.
+            </p>
+            <p className="text-gray-500 text-sm leading-relaxed">
+              Ask me anything about our MSpa range, accessories, maintenance, or spa ownership - I'm here to ensure you have all the information you need.
+            </p>
+          </div>
 
           {/* Centered input */}
           <form onSubmit={handleSubmit} className="mb-8">

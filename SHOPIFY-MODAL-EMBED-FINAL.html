@@ -23,24 +23,26 @@
 </div>
 
 <style>
-#ps-chat-button{position:fixed;bottom:24px;right:24px;background:#1f2937;color:white;border:none;border-radius:50px;padding:16px 24px;display:flex;align-items:center;gap:10px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.15);transition:all 0.3s ease;z-index:999999;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:15px;font-weight:500}
+#ps-chat-button{position:fixed;bottom:24px;right:24px;background:#1f2937;color:white;border:none;border-radius:50px;padding:16px 24px;display:flex;align-items:center;gap:10px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.15);transition:all 0.3s ease;z-index:999998;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:15px;font-weight:500}
 #ps-chat-button:hover{background:#374151;box-shadow:0 6px 16px rgba(0,0,0,0.2);transform:translateY(-2px)}
 #ps-chat-button svg{flex-shrink:0}
 #ps-chat-button-text{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
 #ps-chat-button-title{font-size:15px;font-weight:600;line-height:1.2}
 #ps-chat-button-desc{font-size:12px;font-weight:400;opacity:0.9;line-height:1.2}
 @media (max-width:640px){#ps-chat-button{padding:16px;border-radius:50%}#ps-chat-button-text{display:none}}
-#ps-chat-modal{position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;display:flex;isolation:isolate;align-items:center;justify-content:center;padding:16px}
-#ps-chat-modal-backdrop{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:1}
-#ps-chat-modal-container{position:relative;background:white;border-radius:16px;width:100%;max-width:900px;height:90vh;max-height:800px;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3);overflow:hidden;z-index:2}
-#ps-chat-close-button{position:absolute;top:16px;right:16px;background:white;border:none;padding:8px;cursor:pointer;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#6b7280;transition:all 0.2s ease;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+#ps-chat-modal{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px}
+#ps-chat-modal-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.6);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);z-index:999999}
+#ps-chat-modal-container{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border-radius:16px;width:90%;max-width:900px;height:90vh;max-height:800px;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3);overflow:hidden;z-index:1000000}
+#ps-chat-close-button{position:absolute;top:16px;right:16px;background:white;border:none;padding:8px;cursor:pointer;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#6b7280;transition:all 0.2s ease;z-index:1000001;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
 #ps-chat-close-button:hover{background:#f3f4f6;color:#1f2937}
 #ps-chat-iframe{flex:1;width:100%;border:none;display:block}
-@media (max-width:640px){#ps-chat-modal{padding:0}#ps-chat-modal-container{border-radius:0;max-width:100%;height:100vh;max-height:100vh}}
+@media (max-width:640px){#ps-chat-modal{padding:0}#ps-chat-modal-container{border-radius:0;width:100%;max-width:100%;height:100vh;max-height:100vh;top:0;left:0;transform:none}}
 @keyframes ps-fade-in{from{opacity:0}to{opacity:1}}
-@keyframes ps-slide-up{from{opacity:0;transform:translateY(20px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}
-body.ps-chat-modal-open{overflow:hidden}
+@keyframes ps-slide-up{from{opacity:0;transform:translate(-50%,-50%) scale(0.95)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@media (max-width:640px){@keyframes ps-slide-up{from{opacity:0;transform:translateY(20px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}}
+body.ps-chat-modal-open{overflow:hidden!important}
 #ps-chat-modal{animation:ps-fade-in 0.2s ease}
+#ps-chat-modal-backdrop{animation:ps-fade-in 0.2s ease}
 #ps-chat-modal-container{animation:ps-slide-up 0.3s ease}
 </style>
 
