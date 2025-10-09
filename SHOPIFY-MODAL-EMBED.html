@@ -242,32 +242,65 @@
 
 <script>
   (function() {
-    const button = document.getElementById('ps-chat-button');
-    const modal = document.getElementById('ps-chat-modal');
-    const backdrop = document.getElementById('ps-chat-modal-backdrop');
-    const closeButton = document.getElementById('ps-chat-close-button');
+    'use strict';
 
-    // Open modal
-    button.addEventListener('click', function() {
-      modal.style.display = 'flex';
-      document.body.classList.add('ps-chat-modal-open');
-    });
-
-    // Close modal
-    function closeModal() {
-      modal.style.display = 'none';
-      document.body.classList.remove('ps-chat-modal-open');
+    // Wait for DOM to be fully loaded to avoid conflicts
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPSChat);
+    } else {
+      // DOM already loaded
+      initPSChat();
     }
 
-    closeButton.addEventListener('click', closeModal);
-    backdrop.addEventListener('click', closeModal);
+    function initPSChat() {
+      try {
+        const button = document.getElementById('ps-chat-button');
+        const modal = document.getElementById('ps-chat-modal');
+        const backdrop = document.getElementById('ps-chat-modal-backdrop');
+        const closeButton = document.getElementById('ps-chat-close-button');
 
-    // Close on Escape key
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && modal.style.display === 'flex') {
-        closeModal();
+        // Safety check - ensure elements exist
+        if (!button || !modal || !backdrop || !closeButton) {
+          console.warn('PS Chat: Could not find all required elements');
+          return;
+        }
+
+        // Open modal
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          modal.style.display = 'flex';
+          document.body.classList.add('ps-chat-modal-open');
+        });
+
+        // Close modal
+        function closeModal() {
+          modal.style.display = 'none';
+          document.body.classList.remove('ps-chat-modal-open');
+        }
+
+        closeButton.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          closeModal();
+        });
+
+        backdrop.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          closeModal();
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && modal.style.display === 'flex') {
+            closeModal();
+          }
+        });
+      } catch (error) {
+        console.error('PS Chat initialization error:', error);
       }
-    });
+    }
   })();
 </script>
 
