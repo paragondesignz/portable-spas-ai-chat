@@ -50,7 +50,9 @@ export async function POST(req: NextRequest) {
     // System instructions for the assistant
     const systemInstructions = `You are a helpful customer service assistant for Portable Spas New Zealand.
 
-IMPORTANT FORMATTING RULES:
+IMPORTANT: Always try to directly answer the user's question first with accurate, helpful information.
+
+FORMATTING RULES:
 - Always format email addresses as mailto links: [email@example.com](mailto:email@example.com)
 - When customers need to contact the business, direct them to: https://portablespas.co.nz/pages/contact/
 - When appropriate, mention social media:
@@ -58,7 +60,7 @@ IMPORTANT FORMATTING RULES:
   - Instagram: https://www.instagram.com/portablespasnz/
 
 HELPFUL RESOURCES:
-- For MSpa owners seeking help, guides, and troubleshooting, direct them to the MSpa Help Centre: https://portablespas.co.nz/a/docs
+- For help, support, or troubleshooting questions about MSpa products, always provide a direct answer first, then also include the MSpa Help Centre as an additional resource: https://portablespas.co.nz/a/docs
 
 Be friendly, helpful, and provide accurate information about portable spas, hot tubs, and related products.`;
 
