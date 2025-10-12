@@ -186,8 +186,8 @@ export default function ChatInterface() {
                 disabled={isLoading}
                 className="flex-1 px-6 py-6 text-lg border-gray-300 rounded-3xl focus:ring-2 focus:ring-gray-400 focus:border-transparent"
               />
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isLoading || !input.trim()}
                 className="h-14 w-14 rounded-full bg-gray-800 hover:bg-gray-900 disabled:bg-gray-200 disabled:text-gray-400 transition-colors"
                 size="icon"
@@ -200,6 +200,31 @@ export default function ChatInterface() {
               </Button>
             </div>
           </form>
+
+          {/* Quick start suggestions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
+            {[
+              'What models of spa pool do you sell?',
+              'How do I balance my water chemistry?',
+              'What accessories are available for my MSpa Bergen?',
+              'Do you offer an installation service?',
+              'I\'m getting an F1 error, how can I resolve this?'
+            ].map((suggestion, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setInput(suggestion);
+                  // Trigger form submission
+                  const syntheticEvent = { preventDefault: () => {} } as React.FormEvent;
+                  setTimeout(() => handleSubmit(syntheticEvent), 0);
+                }}
+                disabled={isLoading}
+                className="text-left px-4 py-3 text-sm text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
 
         </div>
       </div>
@@ -357,8 +382,8 @@ export default function ChatInterface() {
                 }}
               />
             </div>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isLoading || !input.trim()}
               className="h-11 w-11 rounded-full bg-gray-800 hover:bg-gray-900 disabled:bg-gray-200 disabled:text-gray-400 transition-colors"
               size="icon"
