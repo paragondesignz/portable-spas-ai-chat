@@ -212,12 +212,7 @@ export default function ChatInterface() {
             ].map((suggestion, index) => (
               <button
                 key={index}
-                onClick={() => {
-                  setInput(suggestion);
-                  // Trigger form submission
-                  const syntheticEvent = { preventDefault: () => {} } as React.FormEvent;
-                  setTimeout(() => handleSubmit(syntheticEvent), 0);
-                }}
+                onClick={() => setInput(suggestion)}
                 disabled={isLoading}
                 className="text-left px-4 py-3 text-sm text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
