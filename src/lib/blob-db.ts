@@ -84,15 +84,14 @@ export async function upsertChatLog(sessionId: string, userName: string): Promis
 }
 
 /**
- * Add a message to a chat log
- * If the chat log doesn't exist, it will be created automatically
+ * Add multiple messages to a chat log in a single operation
+ * This is much faster and more reliable than adding messages one at a time
  */
-export async function addChatMessage(
+export async function addChatMessages(
   sessionId: string,
-  role: 'user' | 'assistant',
-  content: string,
+  messages: Array<{ role: 'user' | 'assistant', content: string }>,
   userName?: string
-): Promise<ChatMessage> {
+): Promise<ChatMessage[]> {
   // Wait for any pending operations on this session to complete
   if (sessionLocks.has(sessionId)) {
     console.log(`[BLOB-DB] Waiting for existing operation to complete for session: ${sessionId}`);
@@ -102,7 +101,7 @@ export async function addChatMessage(
   // Create a promise for this operation
   const operationPromise = (async () => {
     try {
-      console.log(`[BLOB-DB] addChatMessage called - role: ${role}, content length: ${content.length}`);
+      console.log(`[BLOB-DB] addChatMessages called - adding ${messages.length} messages`);
       const key = getChatLogKey(sessionId);
 
       // Fetch existing log
@@ -138,31 +137,30 @@ export async function addChatMessage(
         await del(blobs[0].url);
       }
 
-      // Create new message
-      const newMessage: ChatMessage = {
+      // Create all new messages
+      const newMessages: ChatMessage[] = messages.map(msg => ({
         id: generateId(),
-        role,
-        content,
+        role: msg.role,
+        content: msg.content,
         created_at: new Date().toISOString()
-      };
+      }));
 
-      // Add message to log
-      log.messages.push(newMessage);
+      // Add all messages to log
+      log.messages.push(...newMessages);
       log.updated_at = new Date().toISOString();
 
       console.log('[BLOB-DB] About to save blob. Current message count:', log.messages.length);
-      console.log('[BLOB-DB] Messages:', log.messages.map(m => `${m.role}: ${m.content.substring(0, 30)}...`));
+      console.log('[BLOB-DB] New messages:', newMessages.map(m => `${m.role}: ${m.content.substring(0, 30)}...`));
 
-      // Create new blob with updated content
-      // This is necessary because Vercel Blob doesn't support in-place updates
+      // Create new blob with updated content in one operation
       const result = await put(key, JSON.stringify(log), {
         access: 'public',
         addRandomSuffix: false,
       });
 
-      console.log('[BLOB-DB] Blob saved successfully. URL:', result.url);
+      console.log('[BLOB-DB] Blob saved successfully with', messages.length, 'new messages. URL:', result.url);
 
-      return newMessage;
+      return newMessages;
     } finally {
       // Clean up the lock when done
       sessionLocks.delete(sessionId);
@@ -173,6 +171,20 @@ export async function addChatMessage(
   sessionLocks.set(sessionId, operationPromise);
 
   return operationPromise;
+}
+
+/**
+ * Add a single message to a chat log
+ * For adding multiple messages, use addChatMessages() instead for better performance
+ */
+export async function addChatMessage(
+  sessionId: string,
+  role: 'user' | 'assistant',
+  content: string,
+  userName?: string
+): Promise<ChatMessage> {
+  const messages = await addChatMessages(sessionId, [{ role, content }], userName);
+  return messages[0];
 }
 
 /**

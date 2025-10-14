@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { upsertChatLog, addChatMessage } from '@/lib/blob-db';
+import { addChatMessages } from '@/lib/blob-db';
 
 export const runtime = 'nodejs';
 
@@ -158,32 +158,21 @@ Provide helpful, friendly, and accurate information about MSpa products, accesso
     if (sessionId && userName) {
       try {
         console.log('[CHAT LOG] Starting to log conversation for session:', sessionId);
-        console.log('[CHAT LOG] Total messages in conversation:', messages.length);
 
         // Get the user's last message from the ORIGINAL messages array (not formatted)
         const lastUserMessage = messages[messages.length - 1];
-        console.log('[CHAT LOG] Last message role:', lastUserMessage?.role);
-        console.log('[CHAT LOG] Last message content preview:', lastUserMessage?.content?.substring(0, 100));
-
         const userMessageContent = lastUserMessage?.role === 'user' ? lastUserMessage.content : null;
 
+        // Add both user and assistant messages in a SINGLE operation
+        const messagesToLog = [];
         if (userMessageContent) {
-          console.log('[CHAT LOG] Logging user message of length:', userMessageContent.length);
-          console.log('[CHAT LOG] User message preview:', userMessageContent.substring(0, 50) + '...');
-          console.log('[CHAT LOG] Assistant message preview:', assistantMessage.substring(0, 50) + '...');
-
-          // Add both messages in sequence (passing userName for first message in case log needs to be created)
-          await addChatMessage(sessionId, 'user', userMessageContent, userName);
-          console.log('[CHAT LOG] User message added successfully');
-
-          await addChatMessage(sessionId, 'assistant', assistantMessage, userName);
-          console.log('[CHAT LOG] Assistant message added successfully');
-        } else {
-          console.log('[CHAT LOG] WARNING: No user message to log (last message was not from user)');
-          console.log('[CHAT LOG] Only logging assistant response');
-          await addChatMessage(sessionId, 'assistant', assistantMessage, userName);
-          console.log('[CHAT LOG] Assistant message added successfully');
+          messagesToLog.push({ role: 'user' as const, content: userMessageContent });
         }
+        messagesToLog.push({ role: 'assistant' as const, content: assistantMessage });
+
+        console.log('[CHAT LOG] Adding', messagesToLog.length, 'messages in single operation');
+        await addChatMessages(sessionId, messagesToLog, userName);
+        console.log('[CHAT LOG] All messages saved successfully');
       } catch (dbError: any) {
         // Log the error but don't fail the request
         console.error('[CHAT LOG ERROR] Failed to log chat message:', dbError);
