@@ -157,19 +157,27 @@ Provide helpful, friendly, and accurate information about MSpa products, accesso
     // Log the conversation if sessionId and userName are provided
     if (sessionId && userName) {
       try {
-        await upsertChatLog(sessionId, userName);
+        console.log('[CHAT LOG] Starting to log conversation for session:', sessionId);
+        const chatLog = await upsertChatLog(sessionId, userName);
+        console.log('[CHAT LOG] Chat log created/updated:', chatLog.id);
 
         // Log the user's last message
         const lastUserMessage = messages[messages.length - 1];
         if (lastUserMessage && lastUserMessage.role === 'user') {
+          console.log('[CHAT LOG] Adding user message:', lastUserMessage.content.substring(0, 50) + '...');
           await addChatMessage(sessionId, 'user', lastUserMessage.content);
+          console.log('[CHAT LOG] User message added successfully');
         }
 
         // Log the assistant's response
+        console.log('[CHAT LOG] Adding assistant message:', assistantMessage.substring(0, 50) + '...');
         await addChatMessage(sessionId, 'assistant', assistantMessage);
-      } catch (dbError) {
+        console.log('[CHAT LOG] Assistant message added successfully');
+      } catch (dbError: any) {
         // Log the error but don't fail the request
-        console.error('Failed to log chat message:', dbError);
+        console.error('[CHAT LOG ERROR] Failed to log chat message:', dbError);
+        console.error('[CHAT LOG ERROR] Error details:', dbError.message);
+        console.error('[CHAT LOG ERROR] Stack:', dbError.stack);
       }
     }
 
