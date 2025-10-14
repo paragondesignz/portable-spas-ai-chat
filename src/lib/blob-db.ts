@@ -90,10 +90,12 @@ export async function addChatMessage(
   content: string,
   userName?: string
 ): Promise<ChatMessage> {
+  console.log(`[BLOB-DB] addChatMessage called - role: ${role}, content length: ${content.length}`);
   const key = getChatLogKey(sessionId);
 
   // Fetch existing log
   const { blobs } = await list({ prefix: key });
+  console.log('[BLOB-DB] Found', blobs.length, 'existing blobs for session');
 
   let log: ChatLog;
 
@@ -110,14 +112,17 @@ export async function addChatMessage(
     };
   } else {
     // Fetch the content first
+    console.log('[BLOB-DB] Fetching existing log from:', blobs[0].url);
     const response = await fetch(blobs[0].url);
     if (!response.ok) {
       throw new Error('Failed to fetch chat log');
     }
 
     log = await response.json();
+    console.log('[BLOB-DB] Existing log has', log.messages.length, 'messages');
 
     // Delete old blob (we'll create a new one with updated content)
+    console.log('[BLOB-DB] Deleting old blob');
     await del(blobs[0].url);
   }
 
@@ -133,12 +138,17 @@ export async function addChatMessage(
   log.messages.push(newMessage);
   log.updated_at = new Date().toISOString();
 
+  console.log('[BLOB-DB] About to save blob. Current message count:', log.messages.length);
+  console.log('[BLOB-DB] Messages:', log.messages.map(m => `${m.role}: ${m.content.substring(0, 30)}...`));
+
   // Create new blob with updated content
   // This is necessary because Vercel Blob doesn't support in-place updates
-  await put(key, JSON.stringify(log), {
+  const result = await put(key, JSON.stringify(log), {
     access: 'public',
     addRandomSuffix: false,
   });
+
+  console.log('[BLOB-DB] Blob saved successfully. URL:', result.url);
 
   return newMessage;
 }
