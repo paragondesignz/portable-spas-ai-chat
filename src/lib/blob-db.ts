@@ -39,23 +39,26 @@ export async function upsertChatLog(sessionId: string, userName: string): Promis
   const key = getChatLogKey(sessionId);
 
   try {
-    // Try to fetch existing log
-    const response = await fetch(`${process.env.BLOB_READ_WRITE_TOKEN ? 'https://' + process.env.BLOB_STORE_ID + '.public.blob.vercel-storage.com/' : ''}${key}`);
+    // Try to fetch existing log by listing blobs with prefix
+    const { blobs } = await list({ prefix: key });
 
-    if (response.ok) {
-      const existingLog: ChatLog = await response.json();
-      existingLog.updated_at = new Date().toISOString();
+    if (blobs.length > 0) {
+      const response = await fetch(blobs[0].url);
+      if (response.ok) {
+        const existingLog: ChatLog = await response.json();
+        existingLog.updated_at = new Date().toISOString();
 
-      // Update the blob
-      await put(key, JSON.stringify(existingLog), {
-        access: 'public',
-        addRandomSuffix: false,
-      });
+        // Update the blob
+        await put(key, JSON.stringify(existingLog), {
+          access: 'public',
+          addRandomSuffix: false,
+        });
 
-      return existingLog;
+        return existingLog;
+      }
     }
   } catch (error) {
-    // Log doesn't exist, create new one
+    console.error('Error checking for existing log:', error);
   }
 
   // Create new log
@@ -87,10 +90,15 @@ export async function addChatMessage(
   const key = getChatLogKey(sessionId);
 
   // Fetch existing log
-  const response = await fetch(`${process.env.BLOB_READ_WRITE_TOKEN ? 'https://' + process.env.BLOB_STORE_ID + '.public.blob.vercel-storage.com/' : ''}${key}`);
+  const { blobs } = await list({ prefix: key });
 
-  if (!response.ok) {
+  if (blobs.length === 0) {
     throw new Error('Chat log not found');
+  }
+
+  const response = await fetch(blobs[0].url);
+  if (!response.ok) {
+    throw new Error('Failed to fetch chat log');
   }
 
   const log: ChatLog = await response.json();
@@ -163,8 +171,13 @@ export async function getChatLogWithMessages(sessionId: string): Promise<{
   const key = getChatLogKey(sessionId);
 
   try {
-    const response = await fetch(`${process.env.BLOB_READ_WRITE_TOKEN ? 'https://' + process.env.BLOB_STORE_ID + '.public.blob.vercel-storage.com/' : ''}${key}`);
+    const { blobs } = await list({ prefix: key });
 
+    if (blobs.length === 0) {
+      return { log: null, messages: [] };
+    }
+
+    const response = await fetch(blobs[0].url);
     if (!response.ok) {
       return { log: null, messages: [] };
     }
@@ -172,6 +185,7 @@ export async function getChatLogWithMessages(sessionId: string): Promise<{
     const log: ChatLog = await response.json();
     return { log, messages: log.messages };
   } catch (error) {
+    console.error('Error fetching chat log:', error);
     return { log: null, messages: [] };
   }
 }

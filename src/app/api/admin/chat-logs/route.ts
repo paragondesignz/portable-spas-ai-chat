@@ -31,6 +31,18 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // Check if Blob storage is configured
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      console.error('BLOB_READ_WRITE_TOKEN not configured');
+      return NextResponse.json(
+        {
+          error: 'Blob storage not configured',
+          details: 'Please create Vercel Blob storage in your project settings'
+        },
+        { status: 500 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
@@ -54,7 +66,11 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching chat logs:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch chat logs', details: error.message },
+      {
+        error: 'Failed to fetch chat logs',
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
       { status: 500 }
     );
   }
