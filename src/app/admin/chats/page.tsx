@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { MessageSquare, Trash2, RefreshCw, Lock, Search, Eye, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MessageSquare, Trash2, RefreshCw, Lock, Search, Eye, X, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { AdminNav } from '@/components/admin-nav';
 import ReactMarkdown from 'react-markdown';
 
@@ -166,6 +166,107 @@ export default function ChatLogsPage() {
     }
   };
 
+  const handleExportSelected = async () => {
+    if (selectedLogs.size === 0) {
+      setError('Please select at least one chat log to export');
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await fetch('/api/admin/chat-logs/export', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${password}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ids: Array.from(selectedLogs) })
+      });
+
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+
+      // Download the CSV file
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chat-logs-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      setSuccess(`Successfully exported ${selectedLogs.size} chat log(s)`);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleExportAll = async () => {
+    if (logs.length === 0) {
+      setError('No chat logs to export');
+      return;
+    }
+
+    if (!confirm(`Export all ${total} chat log(s)?`)) {
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+    setIsLoading(true);
+
+    try {
+      // Get all log IDs (not just current page)
+      const allLogsResponse = await fetch(`/api/admin/chat-logs?page=1&limit=${total}`, {
+        headers: {
+          'Authorization': `Bearer ${password}`
+        }
+      });
+
+      if (!allLogsResponse.ok) {
+        throw new Error('Failed to fetch all logs');
+      }
+
+      const allLogsData = await allLogsResponse.json();
+      const allIds = allLogsData.logs.map((log: ChatLog) => log.id);
+
+      const response = await fetch('/api/admin/chat-logs/export', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${password}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ids: allIds })
+      });
+
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+
+      // Download the CSV file
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chat-logs-all-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      setSuccess(`Successfully exported ${allIds.length} chat log(s)`);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const toggleSelectLog = (logId: string) => {
     const newSelection = new Set(selectedLogs);
     if (newSelection.has(logId)) {
@@ -244,15 +345,26 @@ export default function ChatLogsPage() {
                 <span className="text-sm text-blue-900">
                   {selectedLogs.size} chat log(s) selected
                 </span>
-                <Button
-                  onClick={handleDeleteSelected}
-                  variant="outline"
-                  size="sm"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Selected
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleExportSelected}
+                    variant="outline"
+                    size="sm"
+                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
+                  <Button
+                    onClick={handleDeleteSelected}
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Selected
+                  </Button>
+                </div>
               </div>
             )}
           </div>
@@ -278,6 +390,18 @@ export default function ChatLogsPage() {
               <MessageSquare className="h-5 w-5" />
               Chat Logs ({total})
             </h2>
+            {total > 0 && (
+              <Button
+                onClick={handleExportAll}
+                disabled={isLoading}
+                variant="outline"
+                size="sm"
+                className="text-green-600 hover:text-green-700 hover:bg-green-50"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export All
+              </Button>
+            )}
           </div>
 
           {isLoading ? (
