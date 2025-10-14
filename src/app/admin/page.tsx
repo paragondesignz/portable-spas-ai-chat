@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -17,6 +18,7 @@ interface FileInfo {
 }
 
 export default function AdminPage() {
+  const router = useRouter();
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [files, setFiles] = useState<FileInfo[]>([]);
@@ -30,11 +32,10 @@ export default function AdminPage() {
   useEffect(() => {
     const savedPassword = localStorage.getItem('admin_password');
     if (savedPassword) {
-      setPassword(savedPassword);
-      setIsAuthenticated(true);
-      loadFiles(savedPassword);
+      // User is already authenticated, redirect to dashboard
+      router.push('/admin/dashboard');
     }
-  }, []);
+  }, [router]);
 
   const handleLogin = async () => {
     setError('');
@@ -44,11 +45,25 @@ export default function AdminPage() {
     }
 
     try {
-      await loadFiles(password);
+      // Verify password by attempting to load files
+      const response = await fetch('/api/admin/files', {
+        headers: {
+          'Authorization': `Bearer ${password}`
+        }
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Invalid password');
+        }
+        throw new Error('Login failed');
+      }
+
+      // Password is valid, save it and redirect to dashboard
       localStorage.setItem('admin_password', password);
-      setIsAuthenticated(true);
+      router.push('/admin/dashboard');
     } catch (err: any) {
-      setError('Invalid password');
+      setError(err.message || 'Invalid password');
       setIsAuthenticated(false);
     }
   };
