@@ -226,22 +226,27 @@ export async function getChatLogById(id: string): Promise<{
   log: ChatLog | null;
   messages: ChatMessage[];
 }> {
+  console.log('[BLOB-DB] getChatLogById called with ID:', id);
   const { blobs } = await list({ prefix: BLOB_PREFIX });
+  console.log('[BLOB-DB] Found', blobs.length, 'total chat log blobs');
 
   for (const blob of blobs) {
     try {
       const response = await fetch(blob.url);
       if (response.ok) {
         const log: ChatLog = await response.json();
+        console.log('[BLOB-DB] Checking log:', log.id, 'against:', id);
         if (log.id === id) {
+          console.log('[BLOB-DB] Match found! Returning log with', log.messages.length, 'messages');
           return { log, messages: log.messages };
         }
       }
     } catch (error) {
-      console.error(`Failed to fetch blob ${blob.pathname}:`, error);
+      console.error(`[BLOB-DB] Failed to fetch blob ${blob.pathname}:`, error);
     }
   }
 
+  console.log('[BLOB-DB] No matching log found for ID:', id);
   return { log: null, messages: [] };
 }
 
