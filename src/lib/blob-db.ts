@@ -18,6 +18,9 @@ export interface ChatMessage {
 
 const BLOB_PREFIX = 'chatlogs/';
 
+// Simple in-memory lock to prevent concurrent writes to the same session
+const sessionLocks = new Map<string, Promise<any>>();
+
 /**
  * Generate a unique ID
  */
@@ -90,67 +93,86 @@ export async function addChatMessage(
   content: string,
   userName?: string
 ): Promise<ChatMessage> {
-  console.log(`[BLOB-DB] addChatMessage called - role: ${role}, content length: ${content.length}`);
-  const key = getChatLogKey(sessionId);
-
-  // Fetch existing log
-  const { blobs } = await list({ prefix: key });
-  console.log('[BLOB-DB] Found', blobs.length, 'existing blobs for session');
-
-  let log: ChatLog;
-
-  if (blobs.length === 0) {
-    // Create new chat log if it doesn't exist
-    console.log('[BLOB-DB] Chat log not found, creating new one for session:', sessionId);
-    log = {
-      id: generateId(),
-      session_id: sessionId,
-      user_name: userName || 'Anonymous',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      messages: []
-    };
-  } else {
-    // Fetch the content first
-    console.log('[BLOB-DB] Fetching existing log from:', blobs[0].url);
-    const response = await fetch(blobs[0].url);
-    if (!response.ok) {
-      throw new Error('Failed to fetch chat log');
-    }
-
-    log = await response.json();
-    console.log('[BLOB-DB] Existing log has', log.messages.length, 'messages');
-
-    // Delete old blob (we'll create a new one with updated content)
-    console.log('[BLOB-DB] Deleting old blob');
-    await del(blobs[0].url);
+  // Wait for any pending operations on this session to complete
+  if (sessionLocks.has(sessionId)) {
+    console.log(`[BLOB-DB] Waiting for existing operation to complete for session: ${sessionId}`);
+    await sessionLocks.get(sessionId);
   }
 
-  // Create new message
-  const newMessage: ChatMessage = {
-    id: generateId(),
-    role,
-    content,
-    created_at: new Date().toISOString()
-  };
+  // Create a promise for this operation
+  const operationPromise = (async () => {
+    try {
+      console.log(`[BLOB-DB] addChatMessage called - role: ${role}, content length: ${content.length}`);
+      const key = getChatLogKey(sessionId);
 
-  // Add message to log
-  log.messages.push(newMessage);
-  log.updated_at = new Date().toISOString();
+      // Fetch existing log
+      const { blobs } = await list({ prefix: key });
+      console.log('[BLOB-DB] Found', blobs.length, 'existing blobs for session');
 
-  console.log('[BLOB-DB] About to save blob. Current message count:', log.messages.length);
-  console.log('[BLOB-DB] Messages:', log.messages.map(m => `${m.role}: ${m.content.substring(0, 30)}...`));
+      let log: ChatLog;
 
-  // Create new blob with updated content
-  // This is necessary because Vercel Blob doesn't support in-place updates
-  const result = await put(key, JSON.stringify(log), {
-    access: 'public',
-    addRandomSuffix: false,
-  });
+      if (blobs.length === 0) {
+        // Create new chat log if it doesn't exist
+        console.log('[BLOB-DB] Chat log not found, creating new one for session:', sessionId);
+        log = {
+          id: generateId(),
+          session_id: sessionId,
+          user_name: userName || 'Anonymous',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          messages: []
+        };
+      } else {
+        // Fetch the content first
+        console.log('[BLOB-DB] Fetching existing log from:', blobs[0].url);
+        const response = await fetch(blobs[0].url);
+        if (!response.ok) {
+          throw new Error('Failed to fetch chat log');
+        }
 
-  console.log('[BLOB-DB] Blob saved successfully. URL:', result.url);
+        log = await response.json();
+        console.log('[BLOB-DB] Existing log has', log.messages.length, 'messages');
 
-  return newMessage;
+        // Delete old blob (we'll create a new one with updated content)
+        console.log('[BLOB-DB] Deleting old blob');
+        await del(blobs[0].url);
+      }
+
+      // Create new message
+      const newMessage: ChatMessage = {
+        id: generateId(),
+        role,
+        content,
+        created_at: new Date().toISOString()
+      };
+
+      // Add message to log
+      log.messages.push(newMessage);
+      log.updated_at = new Date().toISOString();
+
+      console.log('[BLOB-DB] About to save blob. Current message count:', log.messages.length);
+      console.log('[BLOB-DB] Messages:', log.messages.map(m => `${m.role}: ${m.content.substring(0, 30)}...`));
+
+      // Create new blob with updated content
+      // This is necessary because Vercel Blob doesn't support in-place updates
+      const result = await put(key, JSON.stringify(log), {
+        access: 'public',
+        addRandomSuffix: false,
+      });
+
+      console.log('[BLOB-DB] Blob saved successfully. URL:', result.url);
+
+      return newMessage;
+    } finally {
+      // Clean up the lock when done
+      sessionLocks.delete(sessionId);
+    }
+  })();
+
+  // Store the promise so other operations can wait for it
+  sessionLocks.set(sessionId, operationPromise);
+
+  return operationPromise;
 }
 
 /**
