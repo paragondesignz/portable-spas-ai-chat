@@ -282,13 +282,73 @@ export async function POST(req: NextRequest) {
 
     const result = await uploadResponse.json();
 
+    // Clean up old product catalogs
+    console.log('Checking for old product catalogs to clean up...');
+    let deletedCount = 0;
+    try {
+      // List all files
+      const listResponse = await fetch(
+        `https://prod-1-data.ke.pinecone.io/assistant/files/${assistantName}`,
+        {
+          method: 'GET',
+          headers: {
+            'Api-Key': apiKey,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (listResponse.ok) {
+        const filesData = await listResponse.json();
+        const files = filesData.files || [];
+
+        // Pattern to match product catalog files: product-catalog-YYYY-MM-DD.md
+        const catalogPattern = /^product-catalog-\d{4}-\d{2}-\d{2}\.md$/;
+
+        // Find all product catalog files except the one we just uploaded
+        const oldCatalogs = files.filter((file: any) =>
+          catalogPattern.test(file.name) && file.name !== fileName
+        );
+
+        console.log(`Found ${oldCatalogs.length} old product catalogs to delete`);
+
+        // Delete each old catalog
+        for (const oldFile of oldCatalogs) {
+          try {
+            const deleteResponse = await fetch(
+              `https://prod-1-data.ke.pinecone.io/assistant/files/${assistantName}/${oldFile.id}`,
+              {
+                method: 'DELETE',
+                headers: {
+                  'Api-Key': apiKey,
+                },
+              }
+            );
+
+            if (deleteResponse.ok) {
+              console.log(`Deleted old catalog: ${oldFile.name}`);
+              deletedCount++;
+            } else {
+              console.error(`Failed to delete ${oldFile.name}: ${deleteResponse.status}`);
+            }
+          } catch (deleteError) {
+            console.error(`Error deleting ${oldFile.name}:`, deleteError);
+          }
+        }
+      }
+    } catch (cleanupError) {
+      console.error('Error during cleanup:', cleanupError);
+      // Don't fail the whole operation if cleanup fails
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Product catalog synced successfully',
       stats: {
         productsFound: products.length,
         fileName: fileName,
-        fileId: result.id
+        fileId: result.id,
+        oldCatalogsDeleted: deletedCount
       }
     });
 

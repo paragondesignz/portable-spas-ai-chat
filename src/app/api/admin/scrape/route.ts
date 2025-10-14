@@ -260,6 +260,82 @@ export async function POST(req: NextRequest) {
     const uploadData = await uploadResponse.json();
     console.log('Successfully uploaded to Pinecone:', uploadData);
 
+    // Clean up old scrapes with the same pattern
+    console.log('Checking for old scrapes to clean up...');
+    let deletedCount = 0;
+    try {
+      // Determine the pattern for this scrape type
+      let scrapePattern: RegExp | null = null;
+
+      // If this is a help center scrape, match: scrape-a-docs-YYYY-MM-DD.md
+      if (finalFileName.startsWith('scrape-a-docs-')) {
+        scrapePattern = /^scrape-a-docs-\d{4}-\d{2}-\d{2}\.md$/;
+      }
+      // If this is a custom named file with date, try to detect pattern
+      else if (finalFileName.match(/^scrape-.*-\d{4}-\d{2}-\d{2}\.md$/)) {
+        // Extract the prefix before the date
+        const prefix = finalFileName.replace(/-\d{4}-\d{2}-\d{2}\.md$/, '');
+        scrapePattern = new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-\\d{4}-\\d{2}-\\d{2}\\.md$`);
+      }
+
+      if (scrapePattern) {
+        console.log(`Detected scrape pattern, will clean up old versions matching: ${scrapePattern}`);
+
+        // List all files
+        const listResponse = await fetch(
+          `https://prod-1-data.ke.pinecone.io/assistant/files/${assistantName}`,
+          {
+            method: 'GET',
+            headers: {
+              'Api-Key': pineconeApiKey,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (listResponse.ok) {
+          const filesData = await listResponse.json();
+          const files = filesData.files || [];
+
+          // Find all matching scrape files except the one we just uploaded
+          const oldScrapes = files.filter((file: any) =>
+            scrapePattern!.test(file.name) && file.name !== finalFileName
+          );
+
+          console.log(`Found ${oldScrapes.length} old scrapes to delete`);
+
+          // Delete each old scrape
+          for (const oldFile of oldScrapes) {
+            try {
+              const deleteResponse = await fetch(
+                `https://prod-1-data.ke.pinecone.io/assistant/files/${assistantName}/${oldFile.id}`,
+                {
+                  method: 'DELETE',
+                  headers: {
+                    'Api-Key': pineconeApiKey,
+                  },
+                }
+              );
+
+              if (deleteResponse.ok) {
+                console.log(`Deleted old scrape: ${oldFile.name}`);
+                deletedCount++;
+              } else {
+                console.error(`Failed to delete ${oldFile.name}: ${deleteResponse.status}`);
+              }
+            } catch (deleteError) {
+              console.error(`Error deleting ${oldFile.name}:`, deleteError);
+            }
+          }
+        }
+      } else {
+        console.log('No pattern detected for cleanup (custom filename without date)');
+      }
+    } catch (cleanupError) {
+      console.error('Error during cleanup:', cleanupError);
+      // Don't fail the whole operation if cleanup fails
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Website scraped and uploaded to Pinecone successfully',
@@ -268,6 +344,7 @@ export async function POST(req: NextRequest) {
         contentSize: markdown.length,
         pineconeFileId: uploadData.id,
         fileName: finalFileName,
+        oldScrapesDeleted: deletedCount,
       },
     }, { headers: corsHeaders });
 

@@ -250,7 +250,11 @@ export default function AdminPage() {
       }
 
       const data = await response.json();
-      setSuccess(`Successfully scraped ${data.stats.pagesScraped} pages and uploaded to Pinecone! File: ${data.stats.fileName}`);
+      let message = `Successfully scraped ${data.stats.pagesScraped} pages and uploaded to Pinecone! File: ${data.stats.fileName}`;
+      if (data.stats.oldScrapesDeleted > 0) {
+        message += ` (Removed ${data.stats.oldScrapesDeleted} old scrape${data.stats.oldScrapesDeleted > 1 ? 's' : ''})`;
+      }
+      setSuccess(message);
 
       // Reload files
       await loadFiles();
@@ -281,7 +285,11 @@ export default function AdminPage() {
       }
 
       const data = await response.json();
-      setSuccess(`Successfully synced ${data.stats.productsFound} products from Shopify! File: ${data.stats.fileName}`);
+      let message = `Successfully synced ${data.stats.productsFound} products from Shopify! File: ${data.stats.fileName}`;
+      if (data.stats.oldCatalogsDeleted > 0) {
+        message += ` (Removed ${data.stats.oldCatalogsDeleted} old catalog${data.stats.oldCatalogsDeleted > 1 ? 's' : ''})`;
+      }
+      setSuccess(message);
 
       // Reload files
       await loadFiles();
@@ -594,10 +602,13 @@ export default function AdminPage() {
               <div className="flex gap-2">
                 <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-900">
-                  <p className="font-semibold mb-1">Shopify Product Feed</p>
-                  <p>
-                    This will fetch your current published products from Shopify (https://portablespas.co.nz/collections/all.atom),
-                    convert them to a structured markdown catalog, and upload to Pinecone. Only active/published products are included.
+                  <p className="font-semibold mb-1">Automatic Product Sync</p>
+                  <p className="mb-2">
+                    This will fetch your current published products from Shopify,
+                    convert them to a structured markdown catalog, and upload to Pinecone as a dated file (product-catalog-YYYY-MM-DD.md).
+                  </p>
+                  <p className="text-blue-800">
+                    <strong>Version Control:</strong> Old product catalogs are automatically deleted when a new one is uploaded, keeping only the most recent version.
                   </p>
                 </div>
               </div>
@@ -680,14 +691,17 @@ export default function AdminPage() {
               </p>
             </div>
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+            <div className="bg-blue-50 border border-blue-200 rounded p-3">
               <div className="flex gap-2">
-                <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-yellow-900">
-                  <p className="font-semibold mb-1">Scraping Info</p>
-                  <p>
+                <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-900">
+                  <p className="font-semibold mb-1">Automatic Website Scraping</p>
+                  <p className="mb-2">
                     This will crawl the website, extract all text content, convert it to Markdown,
                     and automatically upload it to Pinecone. The process may take several minutes.
+                  </p>
+                  <p className="text-blue-800">
+                    <strong>Version Control:</strong> When scraping dated URLs (like /a/docs), old scrapes are automatically deleted when a new one is uploaded, keeping only the most recent version.
                   </p>
                 </div>
               </div>
