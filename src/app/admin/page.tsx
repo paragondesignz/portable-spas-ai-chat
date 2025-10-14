@@ -185,7 +185,7 @@ export default function AdminPage() {
             <Lock className="h-12 w-12 text-gray-400 mb-4" />
             <h1 className="text-2xl font-bold text-gray-900">Admin Login</h1>
             <p className="text-sm text-gray-600 mt-2">
-              Pinecone File Management
+              Portable Spas AI Assistant
             </p>
           </div>
 

@@ -30,7 +30,7 @@ export function AdminNav({ onLogout }: AdminNavProps) {
               <div className="bg-primary text-white w-8 h-8 rounded flex items-center justify-center font-bold">
                 PS
               </div>
-              <span className="font-bold text-gray-900">Admin</span>
+              <span className="font-bold text-gray-900">Portable Spas AI Assistant</span>
             </Link>
 
             <nav className="flex gap-1">

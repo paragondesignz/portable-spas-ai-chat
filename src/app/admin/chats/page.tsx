@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { MessageSquare, Trash2, RefreshCw, Lock, Search, Eye, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import Link from 'next/link';
+import { AdminNav } from '@/components/admin-nav';
 
 interface ChatLog {
   id: string;
@@ -24,6 +25,7 @@ interface ChatMessage {
 }
 
 export default function ChatLogsPage() {
+  const router = useRouter();
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [logs, setLogs] = useState<ChatLog[]>([]);
@@ -49,28 +51,12 @@ export default function ChatLogsPage() {
     }
   }, []);
 
-  const handleLogin = async () => {
-    setError('');
-    if (!password) {
-      setError('Please enter a password');
-      return;
-    }
-
-    try {
-      await loadLogs(password);
-      localStorage.setItem('admin_password', password);
-      setIsAuthenticated(true);
-    } catch (err: any) {
-      setError('Invalid password');
-      setIsAuthenticated(false);
-    }
-  };
-
   const handleLogout = () => {
     localStorage.removeItem('admin_password');
     setPassword('');
     setIsAuthenticated(false);
     setLogs([]);
+    router.push('/admin');
   };
 
   const loadLogs = async (pwd: string = password, page: number = 1, query: string = '') => {
@@ -207,76 +193,27 @@ export default function ChatLogsPage() {
         <Card className="w-full max-w-md p-8">
           <div className="flex flex-col items-center mb-6">
             <Lock className="h-12 w-12 text-gray-400 mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900">Admin Login</h1>
-            <p className="text-sm text-gray-600 mt-2">
-              Chat Logs Management
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900">Admin Login Required</h1>
           </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                placeholder="Enter admin password"
-                className="w-full"
-              />
-            </div>
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
-                {error}
-              </div>
-            )}
-
-            <Button
-              onClick={handleLogin}
-              className="w-full"
-              disabled={!password}
-            >
-              Login
-            </Button>
-
-            <p className="text-xs text-gray-500 text-center mt-4">
-              Set ADMIN_PASSWORD in your Vercel environment variables
-            </p>
-          </div>
+          <p className="text-center text-gray-600 mb-4">
+            Please login from the main admin page
+          </p>
+          <Button onClick={() => router.push('/admin')} className="w-full">
+            Go to Login
+          </Button>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-4 mb-2">
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Chat Logs
-                </h1>
-                <Link
-                  href="/admin"
-                  className="text-sm text-blue-600 hover:text-blue-700 underline"
-                >
-                  Back to File Manager
-                </Link>
-              </div>
-              <p className="text-gray-600">
-                View and manage customer chat conversations
-              </p>
-            </div>
-            <Button onClick={handleLogout} variant="outline">
-              Logout
-            </Button>
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      <AdminNav onLogout={handleLogout} />
+
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Chat Logs</h1>
+          <p className="text-gray-600">View and manage customer chat conversations</p>
         </div>
 
         {/* Search and Actions */}
