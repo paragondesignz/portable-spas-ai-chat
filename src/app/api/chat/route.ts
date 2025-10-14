@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { upsertChatLog, addChatMessage } from '@/lib/db';
 
 export const runtime = 'nodejs';
 
@@ -9,6 +10,8 @@ interface Message {
 
 interface ChatRequest {
   messages: Message[];
+  sessionId?: string;
+  userName?: string;
 }
 
 // CORS headers for widget embedding
@@ -25,7 +28,7 @@ export async function OPTIONS() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages }: ChatRequest = await req.json();
+    const { messages, sessionId, userName }: ChatRequest = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
@@ -149,9 +152,29 @@ Provide helpful, friendly, and accurate information about MSpa products, accesso
     }
 
     const data = await response.json();
+    const assistantMessage = data.message?.content || data.message;
+
+    // Log the conversation if sessionId and userName are provided
+    if (sessionId && userName) {
+      try {
+        const chatLog = await upsertChatLog(sessionId, userName);
+
+        // Log the user's last message
+        const lastUserMessage = messages[messages.length - 1];
+        if (lastUserMessage && lastUserMessage.role === 'user') {
+          await addChatMessage(chatLog.id, 'user', lastUserMessage.content);
+        }
+
+        // Log the assistant's response
+        await addChatMessage(chatLog.id, 'assistant', assistantMessage);
+      } catch (dbError) {
+        // Log the error but don't fail the request
+        console.error('Failed to log chat message:', dbError);
+      }
+    }
 
     return NextResponse.json({
-      message: data.message?.content || data.message,
+      message: assistantMessage,
       citations: data.citations || [],
       usage: data.usage
     }, { headers: corsHeaders });

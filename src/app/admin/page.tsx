@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Upload, Trash2, RefreshCw, Lock, FileText, AlertCircle, Eye, X, Info, Globe, ShoppingCart, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import Link from 'next/link';
 
 interface FileInfo {
   id: string;
@@ -452,10 +453,15 @@ export default function AdminPage() {
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Pinecone File Manager
-              </h1>
-              <p className="text-gray-600 mt-1">
+              <div className="flex items-center gap-4 mb-2">
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Pinecone File Manager
+                </h1>
+                <Link href="/admin/chats" className="text-sm text-blue-600 hover:text-blue-700 underline">
+                  View Chat Logs
+                </Link>
+              </div>
+              <p className="text-gray-600">
                 Manage your Portable Spas assistant files
               </p>
             </div>

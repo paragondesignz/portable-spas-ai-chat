@@ -15,6 +15,8 @@ interface Message {
 }
 
 const STORAGE_KEY_MESSAGES = 'ps_chat_messages';
+const STORAGE_KEY_USER_NAME = 'ps_user_name';
+const STORAGE_KEY_SESSION_ID = 'ps_session_id';
 
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -24,6 +26,9 @@ export default function ChatInterface() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const messageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [userName, setUserName] = useState<string>('');
+  const [nameInput, setNameInput] = useState('');
+  const [sessionId, setSessionId] = useState<string>('');
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -32,6 +37,17 @@ export default function ChatInterface() {
       if (savedMessages) {
         setMessages(JSON.parse(savedMessages));
       }
+      const savedName = localStorage.getItem(STORAGE_KEY_USER_NAME);
+      if (savedName) {
+        setUserName(savedName);
+      }
+      let savedSessionId = localStorage.getItem(STORAGE_KEY_SESSION_ID);
+      if (!savedSessionId) {
+        // Generate a new session ID
+        savedSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem(STORAGE_KEY_SESSION_ID, savedSessionId);
+      }
+      setSessionId(savedSessionId);
     } catch (e) {
       console.warn('Could not load from localStorage:', e);
     }
@@ -119,7 +135,9 @@ export default function ChatInterface() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: contextualMessages
+          messages: contextualMessages,
+          sessionId: sessionId,
+          userName: userName || 'Anonymous'
         }),
       });
 
@@ -153,6 +171,56 @@ export default function ChatInterface() {
       setMessages([]);
     }
   };
+
+  const handleNameSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (nameInput.trim()) {
+      const name = nameInput.trim();
+      setUserName(name);
+      localStorage.setItem(STORAGE_KEY_USER_NAME, name);
+    }
+  };
+
+  // Show name collection dialog if no name is set
+  if (!userName && isInitialized) {
+    return (
+      <div className="w-full min-h-screen flex flex-col items-center justify-center bg-white px-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl md:text-5xl font-normal text-gray-800 mb-4">
+              Welcome!
+            </h1>
+            <p className="text-gray-600 text-base leading-relaxed">
+              Before we get started, may I have your name?
+            </p>
+          </div>
+
+          <form onSubmit={handleNameSubmit} className="space-y-4">
+            <div>
+              <Input
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                placeholder="Enter your name"
+                autoFocus
+                className="w-full px-6 py-4 text-lg border-gray-300 rounded-2xl focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={!nameInput.trim()}
+              className="w-full py-4 text-base rounded-2xl bg-gray-800 hover:bg-gray-900 disabled:bg-gray-200 disabled:text-gray-400"
+            >
+              Continue
+            </Button>
+          </form>
+
+          <p className="text-xs text-gray-500 text-center mt-6">
+            Your name will be used to personalize your experience and help us assist you better.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Show centered layout when no messages
   const showCenteredLayout = messages.length === 0;
@@ -233,7 +301,7 @@ export default function ChatInterface() {
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold text-gray-800">Chat with us</h2>
-            <p className="text-sm text-gray-600">Portable Spas New Zealand</p>
+            <p className="text-sm text-gray-600">Portable Spas New Zealand{userName && ` • ${userName}`}</p>
           </div>
           <button
             onClick={handleClearChat}
