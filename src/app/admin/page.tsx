@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Upload, Trash2, RefreshCw, Lock, FileText, AlertCircle, Eye, X, Info, Globe, ShoppingCart } from 'lucide-react';
+import { Upload, Trash2, RefreshCw, Lock, FileText, AlertCircle, Eye, X, Info, Globe, ShoppingCart, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface FileInfo {
   id: string;
@@ -34,6 +34,8 @@ export default function AdminPage() {
   const [quickText, setQuickText] = useState('');
   const [quickTextTitle, setQuickTextTitle] = useState('');
   const [isUploadingText, setIsUploadingText] = useState(false);
+  const [sortBy, setSortBy] = useState<'name' | 'date'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Check if already authenticated
   useEffect(() => {
@@ -347,6 +349,42 @@ export default function AdminPage() {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleString();
+  };
+
+  const handleSort = (column: 'name' | 'date') => {
+    if (sortBy === column) {
+      // Toggle sort order
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Change column and default to ascending
+      setSortBy(column);
+      setSortOrder(column === 'date' ? 'desc' : 'asc');
+    }
+  };
+
+  const sortedFiles = [...files].sort((a, b) => {
+    if (sortBy === 'name') {
+      const comparison = a.name.localeCompare(b.name);
+      return sortOrder === 'asc' ? comparison : -comparison;
+    } else {
+      // Sort by date (createdOn)
+      const dateA = a.createdOn ? new Date(a.createdOn).getTime() : 0;
+      const dateB = b.createdOn ? new Date(b.createdOn).getTime() : 0;
+      const comparison = dateA - dateB;
+      return sortOrder === 'asc' ? comparison : -comparison;
+    }
+  });
+
+  const SortIcon = ({ column }: { column: 'name' | 'date' }) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="h-4 w-4" />;
+    }
+    return sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />;
   };
 
   if (!isAuthenticated) {
@@ -742,52 +780,86 @@ export default function AdminPage() {
               </p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {files.map((file) => (
-                <div
-                  key={file.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-gray-400" />
-                      <p className="font-medium text-gray-900">{file.name}</p>
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        file.status === 'Available' 
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        {file.status}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {formatBytes(file.size)} • ID: {file.id}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => handleViewFile(file)}
-                      variant="outline"
-                      size="sm"
-                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                      title="View file metadata"
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4">
+                      <button
+                        onClick={() => handleSort('name')}
+                        className="flex items-center gap-2 font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+                      >
+                        Name
+                        <SortIcon column="name" />
+                      </button>
+                    </th>
+                    <th className="text-left py-3 px-4">
+                      <button
+                        onClick={() => handleSort('date')}
+                        className="flex items-center gap-2 font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+                      >
+                        Date Added
+                        <SortIcon column="date" />
+                      </button>
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Size</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedFiles.map((file) => (
+                    <tr
+                      key={file.id}
+                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                     >
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
-                    <Button
-                      onClick={() => handleDelete(file.id, file.name)}
-                      variant="outline"
-                      size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      title="Delete from Pinecone"
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                          <span className="font-medium text-gray-900">{file.name}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-sm text-gray-600">
+                        {formatDate(file.createdOn)}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`text-xs px-2 py-1 rounded ${
+                          file.status === 'Available'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {file.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-sm text-gray-600">
+                        {formatBytes(file.size)}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            onClick={() => handleViewFile(file)}
+                            variant="outline"
+                            size="sm"
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            title="View file metadata"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            onClick={() => handleDelete(file.id, file.name)}
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Delete from Pinecone"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </Card>
