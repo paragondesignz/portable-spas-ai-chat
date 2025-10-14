@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { upsertChatLog, addChatMessage } from '@/lib/db';
+import { upsertChatLog, addChatMessage } from '@/lib/blob-db';
 
 export const runtime = 'nodejs';
 
@@ -157,16 +157,16 @@ Provide helpful, friendly, and accurate information about MSpa products, accesso
     // Log the conversation if sessionId and userName are provided
     if (sessionId && userName) {
       try {
-        const chatLog = await upsertChatLog(sessionId, userName);
+        await upsertChatLog(sessionId, userName);
 
         // Log the user's last message
         const lastUserMessage = messages[messages.length - 1];
         if (lastUserMessage && lastUserMessage.role === 'user') {
-          await addChatMessage(chatLog.id, 'user', lastUserMessage.content);
+          await addChatMessage(sessionId, 'user', lastUserMessage.content);
         }
 
         // Log the assistant's response
-        await addChatMessage(chatLog.id, 'assistant', assistantMessage);
+        await addChatMessage(sessionId, 'assistant', assistantMessage);
       } catch (dbError) {
         // Log the error but don't fail the request
         console.error('Failed to log chat message:', dbError);

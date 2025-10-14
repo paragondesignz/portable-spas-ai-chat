@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getChatMessages } from '@/lib/db';
-import { sql } from '@vercel/postgres';
+import { getChatLogById } from '@/lib/blob-db';
 
 export const runtime = 'nodejs';
 
@@ -36,24 +35,17 @@ export async function GET(
     }
 
     const { id } = params;
+    const { log, messages } = await getChatLogById(id);
 
-    // Get the chat log
-    const logResult = await sql`
-      SELECT * FROM chat_logs WHERE id = ${id}
-    `;
-
-    if (logResult.rows.length === 0) {
+    if (!log) {
       return NextResponse.json(
         { error: 'Chat log not found' },
         { status: 404 }
       );
     }
 
-    // Get the messages
-    const messages = await getChatMessages(id);
-
     return NextResponse.json({
-      log: logResult.rows[0],
+      log,
       messages
     });
 

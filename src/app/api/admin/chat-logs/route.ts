@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getChatLogs, deleteChatLogs, searchChatLogs } from '@/lib/db';
+import { getChatLogs, deleteChatLogsByIds, searchChatLogs } from '@/lib/blob-db';
 
 export const runtime = 'nodejs';
 
@@ -82,7 +82,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const deletedCount = await deleteChatLogs(ids);
+    const deletedCount = await deleteChatLogsByIds(ids);
 
     return NextResponse.json({
       success: true,
