@@ -48,7 +48,8 @@ export async function upsertChatLog(sessionId: string, userName: string): Promis
         const existingLog: ChatLog = await response.json();
         existingLog.updated_at = new Date().toISOString();
 
-        // Update the blob
+        // Delete old and create new blob (Vercel Blob doesn't support in-place updates)
+        await del(blobs[0].url);
         await put(key, JSON.stringify(existingLog), {
           access: 'public',
           addRandomSuffix: false,
@@ -96,6 +97,7 @@ export async function addChatMessage(
     throw new Error('Chat log not found');
   }
 
+  // Fetch the content first
   const response = await fetch(blobs[0].url);
   if (!response.ok) {
     throw new Error('Failed to fetch chat log');
@@ -115,7 +117,9 @@ export async function addChatMessage(
   log.messages.push(newMessage);
   log.updated_at = new Date().toISOString();
 
-  // Update the blob
+  // Delete old blob and create new one with same pathname
+  // This is necessary because Vercel Blob doesn't support in-place updates
+  await del(blobs[0].url);
   await put(key, JSON.stringify(log), {
     access: 'public',
     addRandomSuffix: false,
