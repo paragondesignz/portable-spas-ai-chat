@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Upload, Trash2, RefreshCw, Lock, FileText, AlertCircle, Eye, X, Info, Globe, ShoppingCart, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import Link from 'next/link';
+import { Trash2, RefreshCw, Lock, FileText, AlertCircle, Eye, X, Info, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { AdminNav } from '@/components/admin-nav';
 
 interface FileInfo {
   id: string;
@@ -23,22 +23,10 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const [viewingFile, setViewingFile] = useState<FileInfo | null>(null);
-  const [isLoadingFile, setIsLoadingFile] = useState(false);
-  const [isScraping, setIsScraping] = useState(false);
-  const [scrapeUrl, setScrapeUrl] = useState('https://portablespas.co.nz');
-  const [maxPages, setMaxPages] = useState(200);
-  const [scrapeFileName, setScrapeFileName] = useState('');
-  const [isSyncingProducts, setIsSyncingProducts] = useState(false);
-  const [quickText, setQuickText] = useState('');
-  const [quickTextTitle, setQuickTextTitle] = useState('');
-  const [isUploadingText, setIsUploadingText] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'date'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Check if already authenticated
   useEffect(() => {
     const savedPassword = localStorage.getItem('admin_password');
     if (savedPassword) {
@@ -55,7 +43,6 @@ export default function AdminPage() {
       return;
     }
 
-    // Try to load files to verify password
     try {
       await loadFiles(password);
       localStorage.setItem('admin_password', password);
@@ -76,7 +63,7 @@ export default function AdminPage() {
   const loadFiles = async (pwd: string = password) => {
     setIsLoading(true);
     setError('');
-    
+
     try {
       const response = await fetch('/api/admin/files', {
         headers: {
@@ -98,73 +85,6 @@ export default function AdminPage() {
       throw err;
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type
-      const allowedExtensions = ['.txt', '.pdf', '.md', '.docx', '.json', '.csv'];
-      const fileName = file.name.toLowerCase();
-      const isValidType = allowedExtensions.some(ext => fileName.endsWith(ext));
-
-      if (!isValidType) {
-        setError(`Unsupported file type. Please upload: ${allowedExtensions.join(', ')}`);
-        setSelectedFile(null);
-        setSuccess('');
-        // Reset file input
-        e.target.value = '';
-        return;
-      }
-
-      setSelectedFile(file);
-      setError('');
-      setSuccess('');
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      setError('Please select a file');
-      return;
-    }
-
-    setIsUploading(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-
-      const response = await fetch('/api/admin/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${password}`
-        },
-        body: formData
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Upload failed');
-      }
-
-      const data = await response.json();
-      setSuccess(`File "${data.file.name}" uploaded successfully!`);
-      setSelectedFile(null);
-      
-      // Reset file input
-      const fileInput = document.getElementById('file-input') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
-      
-      // Reload files
-      await loadFiles();
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsUploading(false);
     }
   };
 
@@ -198,9 +118,6 @@ export default function AdminPage() {
   };
 
   const handleViewFile = async (file: FileInfo) => {
-    setIsLoadingFile(true);
-    setError('');
-
     try {
       const response = await fetch(`/api/admin/files/${file.id}`, {
         headers: {
@@ -216,139 +133,6 @@ export default function AdminPage() {
       setViewingFile(data.file);
     } catch (err: any) {
       setError(err.message);
-    } finally {
-      setIsLoadingFile(false);
-    }
-  };
-
-  const handleScrapeWebsite = async () => {
-    if (!scrapeUrl) {
-      setError('Please enter a URL to scrape');
-      return;
-    }
-
-    setIsScraping(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      const response = await fetch('/api/admin/scrape', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${password}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          url: scrapeUrl,
-          maxPages,
-          fileName: scrapeFileName
-        })
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Scraping failed');
-      }
-
-      const data = await response.json();
-      let message = `Successfully scraped ${data.stats.pagesScraped} pages and uploaded to Pinecone! File: ${data.stats.fileName}`;
-      if (data.stats.oldScrapesDeleted > 0) {
-        message += ` (Removed ${data.stats.oldScrapesDeleted} old scrape${data.stats.oldScrapesDeleted > 1 ? 's' : ''})`;
-      }
-      setSuccess(message);
-
-      // Reload files
-      await loadFiles();
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsScraping(false);
-    }
-  };
-
-  const handleSyncProducts = async () => {
-    setIsSyncingProducts(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      const response = await fetch('/api/admin/sync-products', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${password}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Product sync failed');
-      }
-
-      const data = await response.json();
-      let message = `Successfully synced ${data.stats.productsFound} products from Shopify! File: ${data.stats.fileName}`;
-      if (data.stats.oldCatalogsDeleted > 0) {
-        message += ` (Removed ${data.stats.oldCatalogsDeleted} old catalog${data.stats.oldCatalogsDeleted > 1 ? 's' : ''})`;
-      }
-      setSuccess(message);
-
-      // Reload files
-      await loadFiles();
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsSyncingProducts(false);
-    }
-  };
-
-  const handleQuickTextUpload = async () => {
-    if (!quickText.trim()) {
-      setError('Please enter some text');
-      return;
-    }
-
-    if (!quickTextTitle.trim()) {
-      setError('Please enter a title');
-      return;
-    }
-
-    setIsUploadingText(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      // Create markdown content
-      const markdown = `# ${quickTextTitle}\n\n${quickText}`;
-      const blob = new Blob([markdown], { type: 'text/markdown' });
-      const fileName = `${quickTextTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.md`;
-
-      const formData = new FormData();
-      formData.append('file', blob, fileName);
-
-      const response = await fetch('/api/admin/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${password}`
-        },
-        body: formData
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Upload failed');
-      }
-
-      const data = await response.json();
-      setSuccess(`Text uploaded successfully as "${fileName}"!`);
-      setQuickText('');
-      setQuickTextTitle('');
-
-      // Reload files
-      await loadFiles();
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsUploadingText(false);
     }
   };
 
@@ -367,10 +151,8 @@ export default function AdminPage() {
 
   const handleSort = (column: 'name' | 'date') => {
     if (sortBy === column) {
-      // Toggle sort order
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
-      // Change column and default to ascending
       setSortBy(column);
       setSortOrder(column === 'date' ? 'desc' : 'asc');
     }
@@ -381,7 +163,6 @@ export default function AdminPage() {
       const comparison = a.name.localeCompare(b.name);
       return sortOrder === 'asc' ? comparison : -comparison;
     } else {
-      // Sort by date (createdOn)
       const dateA = a.createdOn ? new Date(a.createdOn).getTime() : 0;
       const dateB = b.createdOn ? new Date(b.createdOn).getTime() : 0;
       const comparison = dateA - dateB;
@@ -447,298 +228,33 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-4 mb-2">
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Pinecone File Manager
-                </h1>
-                <Link href="/admin/chats" className="text-sm text-blue-600 hover:text-blue-700 underline">
-                  View Chat Logs
-                </Link>
-              </div>
-              <p className="text-gray-600">
-                Manage your Portable Spas assistant files
-              </p>
-            </div>
-            <Button onClick={handleLogout} variant="outline">
-              Logout
-            </Button>
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      <AdminNav onLogout={handleLogout} />
+
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">File Management</h1>
+          <p className="text-gray-600">View and manage files in your Pinecone knowledge base</p>
         </div>
 
-        {/* Upload Section */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            Upload File
-          </h2>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select File (.txt, .pdf, .md, .docx, .json, .csv)
-              </label>
-              <input
-                id="file-input"
-                type="file"
-                accept=".txt,.pdf,.md,.docx,.json,.csv"
-                onChange={handleFileSelect}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Supported: TXT, PDF, Markdown, DOCX, JSON, CSV (CSV auto-converts to Markdown)
-              </p>
-            </div>
-
-            {selectedFile && (
-              <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                <p className="text-sm text-blue-900">
-                  <strong>Selected:</strong> {selectedFile.name} ({formatBytes(selectedFile.size)})
-                </p>
-              </div>
-            )}
-
-            <Button
-              onClick={handleUpload}
-              disabled={!selectedFile || isUploading}
-              className="w-full"
-            >
-              {isUploading ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Uploading...
-                </>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload to Pinecone
-                </>
-              )}
-            </Button>
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 flex items-center gap-2">
+            <AlertCircle className="h-5 w-5" />
+            {error}
           </div>
-        </Card>
+        )}
 
-        {/* Quick Text Entry Section */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Quick Text Entry
-          </h2>
-
-          <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 rounded p-3">
-              <div className="flex gap-2">
-                <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-900">
-                  <p className="font-semibold mb-1">Add Quick Information</p>
-                  <p>
-                    Quickly add important information to Pinecone without creating a file first.
-                    The text will be saved as a Markdown file and uploaded automatically.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Title
-              </label>
-              <Input
-                type="text"
-                value={quickTextTitle}
-                onChange={(e) => setQuickTextTitle(e.target.value)}
-                placeholder="e.g., Delivery Information or Holiday Hours"
-                className="w-full"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                This will be used as the heading and filename
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Content
-              </label>
-              <textarea
-                value={quickText}
-                onChange={(e) => setQuickText(e.target.value)}
-                placeholder="Enter any important information you want the AI to know about..."
-                rows={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-y"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                You can use Markdown formatting if you like
-              </p>
-            </div>
-
-            <Button
-              onClick={handleQuickTextUpload}
-              disabled={!quickText.trim() || !quickTextTitle.trim() || isUploadingText}
-              className="w-full"
-            >
-              {isUploadingText ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Uploading...
-                </>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload to Pinecone
-                </>
-              )}
-            </Button>
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
+            {success}
           </div>
-        </Card>
+        )}
 
-        {/* Product Catalog Sync Section */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5" />
-            Sync Product Catalog
-          </h2>
-
-          <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 rounded p-3">
-              <div className="flex gap-2">
-                <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-900">
-                  <p className="font-semibold mb-1">Automatic Product Sync</p>
-                  <p className="mb-2">
-                    This will fetch your current published products from Shopify,
-                    convert them to a structured markdown catalog, and upload to Pinecone as a dated file (product-catalog-YYYY-MM-DD.md).
-                  </p>
-                  <p className="text-blue-800">
-                    <strong>Version Control:</strong> Old product catalogs are automatically deleted when a new one is uploaded, keeping only the most recent version.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <Button
-              onClick={handleSyncProducts}
-              disabled={isSyncingProducts}
-              className="w-full"
-            >
-              {isSyncingProducts ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Syncing Products...
-                </>
-              ) : (
-                <>
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Sync Products from Shopify
-                </>
-              )}
-            </Button>
-          </div>
-        </Card>
-
-        {/* Website Scraper Section */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Globe className="h-5 w-5" />
-            Scrape Website
-          </h2>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Website URL
-              </label>
-              <Input
-                type="url"
-                value={scrapeUrl}
-                onChange={(e) => setScrapeUrl(e.target.value)}
-                placeholder="https://portablespas.co.nz or https://portablespas.co.nz/spas"
-                className="w-full"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Enter full site URL or specific directory (e.g., /spas, /accessories) to scrape only that section
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                File Name (Optional)
-              </label>
-              <Input
-                type="text"
-                value={scrapeFileName}
-                onChange={(e) => setScrapeFileName(e.target.value)}
-                placeholder="e.g., spas-catalog or accessories-info"
-                className="w-full"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Custom name to identify this content in Pinecone (auto-generated if blank)
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Max Pages to Scrape
-              </label>
-              <Input
-                type="number"
-                value={maxPages}
-                onChange={(e) => setMaxPages(parseInt(e.target.value) || 200)}
-                min="1"
-                max="1000"
-                className="w-full"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Limit the number of pages to scrape (recommended: 200-500 for full site coverage)
-              </p>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded p-3">
-              <div className="flex gap-2">
-                <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-900">
-                  <p className="font-semibold mb-1">Automatic Website Scraping</p>
-                  <p className="mb-2">
-                    This will crawl the website, extract all text content, convert it to Markdown,
-                    and automatically upload it to Pinecone. The process may take several minutes.
-                  </p>
-                  <p className="text-blue-800">
-                    <strong>Version Control:</strong> When scraping dated URLs (like /a/docs), old scrapes are automatically deleted when a new one is uploaded, keeping only the most recent version.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <Button
-              onClick={handleScrapeWebsite}
-              disabled={!scrapeUrl || isScraping}
-              className="w-full"
-            >
-              {isScraping ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Scraping... This may take a few minutes
-                </>
-              ) : (
-                <>
-                  <Globe className="h-4 w-4 mr-2" />
-                  Scrape & Upload to Pinecone
-                </>
-              )}
-            </Button>
-          </div>
-        </Card>
-
-        {/* Info Box */}
         <Card className="p-4 mb-6 bg-blue-50 border-blue-200">
           <div className="flex gap-3">
             <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-blue-900">
-              <p className="font-semibold mb-1">About Pinecone Assistant File Processing</p>
+              <p className="font-semibold mb-1">About Pinecone File Processing</p>
               <p className="mb-2">
                 When you upload a file, Pinecone processes it for AI-powered search:
               </p>
@@ -755,21 +271,6 @@ export default function AdminPage() {
           </div>
         </Card>
 
-        {/* Messages */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 flex items-center gap-2">
-            <AlertCircle className="h-5 w-5" />
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
-            {success}
-          </div>
-        )}
-
-        {/* Files List */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
@@ -796,7 +297,7 @@ export default function AdminPage() {
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-2" />
               <p className="text-gray-600">No files uploaded yet</p>
               <p className="text-sm text-gray-500 mt-1">
-                Upload a file to get started
+                Use the Upload page to add files
               </p>
             </div>
           ) : (
@@ -908,7 +409,7 @@ export default function AdminPage() {
                       <label className="text-sm font-medium text-gray-600">Name</label>
                       <p className="text-gray-900 font-mono text-sm">{viewingFile.name}</p>
                     </div>
-                    
+
                     <div>
                       <label className="text-sm font-medium text-gray-600">File ID</label>
                       <p className="text-gray-900 font-mono text-xs break-all">{viewingFile.id}</p>
@@ -918,14 +419,14 @@ export default function AdminPage() {
                       <div>
                         <label className="text-sm font-medium text-gray-600">Status</label>
                         <p className={`text-sm font-medium ${
-                          viewingFile.status === 'Available' 
-                            ? 'text-green-600' 
+                          viewingFile.status === 'Available'
+                            ? 'text-green-600'
                             : 'text-yellow-600'
                         }`}>
                           {viewingFile.status}
                         </p>
                       </div>
-                      
+
                       <div>
                         <label className="text-sm font-medium text-gray-600">Size</label>
                         <p className="text-gray-900 text-sm">{formatBytes(viewingFile.size)}</p>
@@ -957,7 +458,7 @@ export default function AdminPage() {
                       <div className="text-sm text-amber-900">
                         <p className="font-semibold mb-1">Original File Not Available</p>
                         <p className="mb-2">
-                          Pinecone processes files for AI search and doesn't store the original file. 
+                          Pinecone processes files for AI search and doesn't store the original file.
                           Only the extracted knowledge exists as vectors in your knowledge base.
                         </p>
                         <p className="text-amber-800">
@@ -984,4 +485,3 @@ export default function AdminPage() {
     </div>
   );
 }
-
