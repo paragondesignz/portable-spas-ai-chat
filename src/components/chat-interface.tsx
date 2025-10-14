@@ -129,6 +129,13 @@ export default function ChatInterface() {
     try {
       const contextualMessages = [...messages, userMessage];
 
+      console.log('[CLIENT] Sending to API:');
+      console.log('[CLIENT] - Total messages:', contextualMessages.length);
+      console.log('[CLIENT] - Session ID:', sessionId);
+      console.log('[CLIENT] - User name:', userName);
+      console.log('[CLIENT] - Last message role:', contextualMessages[contextualMessages.length - 1]?.role);
+      console.log('[CLIENT] - Last message content:', contextualMessages[contextualMessages.length - 1]?.content?.substring(0, 50));
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
