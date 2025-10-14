@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { MessageSquare, Trash2, RefreshCw, Lock, Search, Eye, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AdminNav } from '@/components/admin-nav';
+import ReactMarkdown from 'react-markdown';
 
 interface ChatLog {
   id: string;
@@ -444,8 +445,48 @@ export default function ChatLogsPage() {
                           <div className="text-xs font-medium mb-1 opacity-75">
                             {message.role === 'user' ? viewingLog.user_name : 'Assistant'}
                           </div>
-                          <div className="text-sm whitespace-pre-wrap break-words">
-                            {message.content}
+                          <div className="text-sm">
+                            {message.role === 'user' ? (
+                              <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                            ) : (
+                              <div className="prose prose-sm max-w-none prose-invert">
+                                <ReactMarkdown
+                                  components={{
+                                    a: ({ node, href, children, ...props }) => (
+                                      <a
+                                        href={href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-400 hover:text-blue-300 underline font-medium"
+                                        {...props}
+                                      >
+                                        {children}
+                                      </a>
+                                    ),
+                                    p: ({ node, ...props }) => (
+                                      <p {...props} className="mb-2 last:mb-0" />
+                                    ),
+                                    ul: ({ node, ...props }) => (
+                                      <ul {...props} className="list-disc ml-4 mb-2 space-y-1" />
+                                    ),
+                                    ol: ({ node, ...props }) => (
+                                      <ol {...props} className="list-decimal ml-4 mb-2 space-y-1" />
+                                    ),
+                                    li: ({ node, ...props }) => (
+                                      <li {...props} className="ml-0" />
+                                    ),
+                                    strong: ({ node, ...props }) => (
+                                      <strong {...props} className="font-semibold" />
+                                    ),
+                                    code: ({ node, ...props }) => (
+                                      <code {...props} className="bg-gray-700 px-1 rounded text-xs" />
+                                    ),
+                                  }}
+                                >
+                                  {message.content}
+                                </ReactMarkdown>
+                              </div>
+                            )}
                           </div>
                           <div className="text-xs mt-1 opacity-60">
                             {new Date(message.created_at).toLocaleTimeString()}
