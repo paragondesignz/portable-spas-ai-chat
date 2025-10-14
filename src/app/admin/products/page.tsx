@@ -146,22 +146,36 @@ export default function ProductsPage() {
           </div>
         </Card>
 
-        <Card className="p-4 bg-amber-50 border-amber-200">
+        <Card className="p-4 bg-green-50 border-green-200">
+          <div className="flex gap-3">
+            <RefreshCw className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-green-900">
+              <p className="font-semibold mb-1">Automatic Daily Sync</p>
+              <p className="text-green-800">
+                <strong>Your product catalog is automatically imported fresh every morning at 2:00 AM.</strong> This ensures your chatbot always has the latest product information without any manual intervention.
+              </p>
+              <p className="mt-2 text-green-700">
+                ✓ No manual syncing needed for daily updates
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4 bg-amber-50 border-amber-200 mt-6">
           <div className="flex gap-3">
             <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-amber-900">
-              <p className="font-semibold mb-1">When to Sync</p>
+              <p className="font-semibold mb-1">Manual Sync</p>
               <p className="mb-2">
-                You should sync your product catalog whenever you:
+                Use the manual sync button above if you need immediate updates:
               </p>
               <ul className="list-disc list-inside space-y-1 text-amber-800">
-                <li>Add new products to your Shopify store</li>
-                <li>Update product descriptions or prices</li>
-                <li>Change product variants or availability</li>
-                <li>Remove or archive products</li>
+                <li>Just added a new product and need it live right away</li>
+                <li>Made urgent price or description changes</li>
+                <li>Need to test the chatbot with the latest data</li>
               </ul>
               <p className="mt-2 text-amber-800">
-                💡 Regular syncing ensures your chatbot has accurate product information
+                💡 Otherwise, the automatic daily sync at 2 AM keeps everything up to date
               </p>
             </div>
           </div>
