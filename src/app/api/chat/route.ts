@@ -158,14 +158,19 @@ Provide helpful, friendly, and accurate information about MSpa products, accesso
     if (sessionId && userName) {
       try {
         console.log('[CHAT LOG] Starting to log conversation for session:', sessionId);
+        console.log('[CHAT LOG] Total messages in conversation:', messages.length);
 
-        // Get the user's last message
+        // Get the user's last message from the ORIGINAL messages array (not formatted)
         const lastUserMessage = messages[messages.length - 1];
+        console.log('[CHAT LOG] Last message role:', lastUserMessage?.role);
+        console.log('[CHAT LOG] Last message content preview:', lastUserMessage?.content?.substring(0, 100));
+
         const userMessageContent = lastUserMessage?.role === 'user' ? lastUserMessage.content : null;
 
         if (userMessageContent) {
-          console.log('[CHAT LOG] User message:', userMessageContent.substring(0, 50) + '...');
-          console.log('[CHAT LOG] Assistant message:', assistantMessage.substring(0, 50) + '...');
+          console.log('[CHAT LOG] Logging user message of length:', userMessageContent.length);
+          console.log('[CHAT LOG] User message preview:', userMessageContent.substring(0, 50) + '...');
+          console.log('[CHAT LOG] Assistant message preview:', assistantMessage.substring(0, 50) + '...');
 
           // Add both messages in sequence (passing userName for first message in case log needs to be created)
           await addChatMessage(sessionId, 'user', userMessageContent, userName);
@@ -174,7 +179,8 @@ Provide helpful, friendly, and accurate information about MSpa products, accesso
           await addChatMessage(sessionId, 'assistant', assistantMessage, userName);
           console.log('[CHAT LOG] Assistant message added successfully');
         } else {
-          console.log('[CHAT LOG] No user message to log, only logging assistant response');
+          console.log('[CHAT LOG] WARNING: No user message to log (last message was not from user)');
+          console.log('[CHAT LOG] Only logging assistant response');
           await addChatMessage(sessionId, 'assistant', assistantMessage, userName);
           console.log('[CHAT LOG] Assistant message added successfully');
         }
