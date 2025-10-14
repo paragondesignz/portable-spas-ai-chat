@@ -1,36 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Upload, RefreshCw, AlertCircle, Lock, Info } from 'lucide-react';
 import { AdminNav } from '@/components/admin-nav';
+import { useAdminAuth } from '@/hooks/use-admin-auth';
 
 export default function UploadPage() {
   const router = useRouter();
-  const [password, setPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { password, isAuthenticated, isChecking, handleLogout } = useAdminAuth();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  useEffect(() => {
-    const savedPassword = localStorage.getItem('admin_password');
-    if (savedPassword) {
-      setPassword(savedPassword);
-      setIsAuthenticated(true);
-    }
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('admin_password');
-    setPassword('');
-    setIsAuthenticated(false);
-    router.push('/admin');
-  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -101,6 +86,14 @@ export default function UploadPage() {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
