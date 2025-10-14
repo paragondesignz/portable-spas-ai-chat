@@ -122,7 +122,7 @@ export default function DashboardPage() {
       title: 'View Files',
       description: 'Manage uploaded files',
       icon: FileText,
-      href: '/admin',
+      href: '/admin/files',
       color: 'indigo'
     },
     {
