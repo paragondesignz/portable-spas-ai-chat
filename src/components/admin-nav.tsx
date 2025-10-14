@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { FileText, Upload, Type, ShoppingCart, Globe, MessageSquare, LayoutDashboard } from 'lucide-react';
+import { FileText, Upload, Type, ShoppingCart, Globe, MessageSquare } from 'lucide-react';
 
 interface AdminNavProps {
   onLogout: () => void;
@@ -13,7 +13,6 @@ export function AdminNav({ onLogout }: AdminNavProps) {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin', label: 'Files', icon: FileText },
     { href: '/admin/upload', label: 'Upload', icon: Upload },
     { href: '/admin/quick-text', label: 'Quick Text', icon: Type },
