@@ -82,28 +82,44 @@ export async function upsertChatLog(sessionId: string, userName: string): Promis
 
 /**
  * Add a message to a chat log
+ * If the chat log doesn't exist, it will be created automatically
  */
 export async function addChatMessage(
   sessionId: string,
   role: 'user' | 'assistant',
-  content: string
+  content: string,
+  userName?: string
 ): Promise<ChatMessage> {
   const key = getChatLogKey(sessionId);
 
   // Fetch existing log
   const { blobs } = await list({ prefix: key });
 
+  let log: ChatLog;
+
   if (blobs.length === 0) {
-    throw new Error('Chat log not found');
-  }
+    // Create new chat log if it doesn't exist
+    console.log('[BLOB-DB] Chat log not found, creating new one for session:', sessionId);
+    log = {
+      id: generateId(),
+      session_id: sessionId,
+      user_name: userName || 'Anonymous',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      messages: []
+    };
+  } else {
+    // Fetch the content first
+    const response = await fetch(blobs[0].url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch chat log');
+    }
 
-  // Fetch the content first
-  const response = await fetch(blobs[0].url);
-  if (!response.ok) {
-    throw new Error('Failed to fetch chat log');
-  }
+    log = await response.json();
 
-  const log: ChatLog = await response.json();
+    // Delete old blob (we'll create a new one with updated content)
+    await del(blobs[0].url);
+  }
 
   // Create new message
   const newMessage: ChatMessage = {
@@ -117,9 +133,8 @@ export async function addChatMessage(
   log.messages.push(newMessage);
   log.updated_at = new Date().toISOString();
 
-  // Delete old blob and create new one with same pathname
+  // Create new blob with updated content
   // This is necessary because Vercel Blob doesn't support in-place updates
-  await del(blobs[0].url);
   await put(key, JSON.stringify(log), {
     access: 'public',
     addRandomSuffix: false,

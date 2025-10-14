@@ -158,21 +158,26 @@ Provide helpful, friendly, and accurate information about MSpa products, accesso
     if (sessionId && userName) {
       try {
         console.log('[CHAT LOG] Starting to log conversation for session:', sessionId);
-        const chatLog = await upsertChatLog(sessionId, userName);
-        console.log('[CHAT LOG] Chat log created/updated:', chatLog.id);
 
-        // Log the user's last message
+        // Get the user's last message
         const lastUserMessage = messages[messages.length - 1];
-        if (lastUserMessage && lastUserMessage.role === 'user') {
-          console.log('[CHAT LOG] Adding user message:', lastUserMessage.content.substring(0, 50) + '...');
-          await addChatMessage(sessionId, 'user', lastUserMessage.content);
-          console.log('[CHAT LOG] User message added successfully');
-        }
+        const userMessageContent = lastUserMessage?.role === 'user' ? lastUserMessage.content : null;
 
-        // Log the assistant's response
-        console.log('[CHAT LOG] Adding assistant message:', assistantMessage.substring(0, 50) + '...');
-        await addChatMessage(sessionId, 'assistant', assistantMessage);
-        console.log('[CHAT LOG] Assistant message added successfully');
+        if (userMessageContent) {
+          console.log('[CHAT LOG] User message:', userMessageContent.substring(0, 50) + '...');
+          console.log('[CHAT LOG] Assistant message:', assistantMessage.substring(0, 50) + '...');
+
+          // Add both messages in sequence (passing userName for first message in case log needs to be created)
+          await addChatMessage(sessionId, 'user', userMessageContent, userName);
+          console.log('[CHAT LOG] User message added successfully');
+
+          await addChatMessage(sessionId, 'assistant', assistantMessage, userName);
+          console.log('[CHAT LOG] Assistant message added successfully');
+        } else {
+          console.log('[CHAT LOG] No user message to log, only logging assistant response');
+          await addChatMessage(sessionId, 'assistant', assistantMessage, userName);
+          console.log('[CHAT LOG] Assistant message added successfully');
+        }
       } catch (dbError: any) {
         // Log the error but don't fail the request
         console.error('[CHAT LOG ERROR] Failed to log chat message:', dbError);
