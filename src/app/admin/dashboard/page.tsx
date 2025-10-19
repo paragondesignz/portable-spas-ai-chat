@@ -1,19 +1,38 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, FileText, MessageSquare, Upload, Type, ShoppingCart, Globe, TrendingUp, Clock, Users, Database } from 'lucide-react';
+import { RefreshCw, FileText, MessageSquare, Upload, Type, ShoppingCart, Globe, TrendingUp, Clock, Users, Database, Eye, X, FileDown } from 'lucide-react';
 import { AdminNav } from '@/components/admin-nav';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface DashboardStats {
   totalFiles: number;
   totalChats: number;
   recentChats: number;
   lastSync?: string;
+}
+
+interface ChatLog {
+  id: string;
+  session_id: string;
+  user_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ChatMessage {
+  id: string;
+  chat_log_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  created_at: string;
 }
 
 export default function DashboardPage() {
@@ -25,6 +44,14 @@ export default function DashboardPage() {
     recentChats: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [recentChatLogs, setRecentChatLogs] = useState<ChatLog[]>([]);
+  const [viewingLog, setViewingLog] = useState<ChatLog | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const chatContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -44,8 +71,8 @@ export default function DashboardPage() {
         setStats(prev => ({ ...prev, totalFiles: filesData.files?.length || 0 }));
       }
 
-      // Load chat logs count
-      const chatsResponse = await fetch('/api/admin/chat-logs?page=1&limit=50', {
+      // Load chat logs count and recent chats
+      const chatsResponse = await fetch('/api/admin/chat-logs?page=1&limit=10', {
         headers: { 'Authorization': `Bearer ${password}` }
       });
       if (chatsResponse.ok) {
@@ -55,12 +82,103 @@ export default function DashboardPage() {
           totalChats: chatsData.total || 0,
           recentChats: chatsData.logs?.length || 0
         }));
+        setRecentChatLogs(chatsData.logs || []);
       }
     } catch (error) {
       console.error('Error loading stats:', error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleViewLog = async (log: ChatLog) => {
+    setIsLoadingMessages(true);
+    setError('');
+    setViewingLog(log);
+
+    try {
+      const response = await fetch(`/api/admin/chat-logs/${log.id}`, {
+        headers: {
+          'Authorization': `Bearer ${password}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load chat messages');
+      }
+
+      const data = await response.json();
+      setMessages(data.messages || []);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoadingMessages(false);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!chatContentRef.current || !viewingLog) return;
+
+    setIsGeneratingPdf(true);
+    setError('');
+
+    try {
+      const element = chatContentRef.current;
+      const clone = element.cloneNode(true) as HTMLElement;
+
+      clone.style.backgroundColor = 'white';
+      clone.style.padding = '20px';
+      clone.style.width = element.offsetWidth + 'px';
+
+      document.body.appendChild(clone);
+
+      const canvas = await html2canvas(clone, {
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        scale: 2
+      } as any);
+
+      document.body.removeChild(clone);
+
+      const imgWidth = 190;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+      heightLeft -= 297;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+        heightLeft -= 297;
+      }
+
+      const fileName = `chat-${viewingLog.user_name}-${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+
+      setSuccess(`PDF downloaded successfully: ${fileName}`);
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: any) {
+      console.error('PDF generation error:', err);
+      setError('Failed to generate PDF. Please try again.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString();
   };
 
   if (isChecking) {
@@ -233,6 +351,62 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Recent Chats */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">Recent Chats</h2>
+            <Link href="/admin/chats">
+              <Button variant="outline" size="sm">
+                View All Chats
+              </Button>
+            </Link>
+          </div>
+          <Card className="p-6">
+            {isLoading ? (
+              <div className="text-center py-8">
+                <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-400 mb-2" />
+                <p className="text-gray-600">Loading chats...</p>
+              </div>
+            ) : recentChatLogs.length === 0 ? (
+              <div className="text-center py-8 bg-gray-50 rounded">
+                <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-600">No recent chats</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Chat logs will appear here as customers interact with the chatbot
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentChatLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                    onClick={() => handleViewLog(log)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <MessageSquare className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium text-gray-900">{log.user_name}</p>
+                        <p className="text-sm text-gray-500">
+                          Started: {formatDate(log.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
+
         {/* Helpful Tips */}
         <div>
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Helpful Tips</h2>
@@ -273,6 +447,143 @@ export default function DashboardPage() {
           </div>
         </Card>
       </div>
+
+      {/* Chat View Modal */}
+      {viewingLog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+            <div ref={chatContentRef}>
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                      <MessageSquare className="h-6 w-6" />
+                      Chat with {viewingLog.user_name}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Session started: {formatDate(viewingLog.created_at)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 print:hidden">
+                    <Button
+                      onClick={handleDownloadPDF}
+                      disabled={isGeneratingPdf || isLoadingMessages || messages.length === 0}
+                      variant="outline"
+                      size="sm"
+                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                    >
+                      <FileDown className="h-4 w-4 mr-2" />
+                      {isGeneratingPdf ? 'Generating...' : 'Download PDF'}
+                    </Button>
+                    <button
+                      onClick={() => {
+                        setViewingLog(null);
+                        setMessages([]);
+                      }}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="h-6 w-6" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6">
+                {isLoadingMessages ? (
+                  <div className="text-center py-12">
+                    <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-400 mb-2" />
+                    <p className="text-gray-600">Loading messages...</p>
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="text-center py-12">
+                    <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-600">No messages in this chat</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[75%] rounded-lg px-4 py-3 ${
+                            message.role === 'user'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-100 text-gray-900'
+                          }`}
+                        >
+                          <div className="text-xs font-medium mb-1 opacity-75">
+                            {message.role === 'user' ? viewingLog.user_name : 'Assistant'}
+                          </div>
+                          <div className="text-sm">
+                            {message.role === 'user' ? (
+                              <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                            ) : (
+                              <div className="prose prose-sm max-w-none prose-invert">
+                                <ReactMarkdown
+                                  components={{
+                                    a: ({ node, href, children, ...props }) => (
+                                      <a
+                                        href={href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-400 hover:text-blue-300 underline font-medium"
+                                        {...props}
+                                      >
+                                        {children}
+                                      </a>
+                                    ),
+                                    p: ({ node, ...props }) => (
+                                      <p {...props} className="mb-2 last:mb-0" />
+                                    ),
+                                    ul: ({ node, ...props }) => (
+                                      <ul {...props} className="list-disc ml-4 mb-2 space-y-1" />
+                                    ),
+                                    ol: ({ node, ...props }) => (
+                                      <ol {...props} className="list-decimal ml-4 mb-2 space-y-1" />
+                                    ),
+                                    li: ({ node, ...props }) => (
+                                      <li {...props} className="ml-0" />
+                                    ),
+                                    strong: ({ node, ...props }) => (
+                                      <strong {...props} className="font-semibold" />
+                                    ),
+                                    code: ({ node, ...props }) => (
+                                      <code {...props} className="bg-gray-700 px-1 rounded text-xs" />
+                                    ),
+                                  }}
+                                >
+                                  {message.content}
+                                </ReactMarkdown>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-xs mt-1 opacity-60">
+                            {new Date(message.created_at).toLocaleTimeString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50 print:hidden">
+              <Button
+                onClick={() => {
+                  setViewingLog(null);
+                  setMessages([]);
+                }}
+                className="w-full"
+              >
+                Close
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { MessageSquare, Trash2, RefreshCw, Lock, Search, Eye, X, ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { MessageSquare, Trash2, RefreshCw, Lock, Search, Eye, X, ChevronLeft, ChevronRight, Download, FileDown } from 'lucide-react';
 import { AdminNav } from '@/components/admin-nav';
 import ReactMarkdown from 'react-markdown';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface ChatLog {
   id: string;
@@ -41,6 +43,8 @@ export default function ChatLogsPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [selectedLogs, setSelectedLogs] = useState<Set<string>>(new Set());
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const chatContentRef = useRef<HTMLDivElement>(null);
 
   // Check if already authenticated
   useEffect(() => {
@@ -289,6 +293,78 @@ export default function ChatLogsPage() {
     return new Date(dateString).toLocaleString();
   };
 
+  const handleDownloadPDF = async () => {
+    if (!chatContentRef.current || !viewingLog) return;
+
+    setIsGeneratingPdf(true);
+    setError('');
+
+    try {
+      // Create a clone of the chat content to modify for PDF
+      const element = chatContentRef.current;
+      const clone = element.cloneNode(true) as HTMLElement;
+
+      // Add white background to ensure proper rendering
+      clone.style.backgroundColor = 'white';
+      clone.style.padding = '20px';
+      clone.style.width = element.offsetWidth + 'px';
+
+      // Temporarily add clone to document
+      document.body.appendChild(clone);
+
+      // Generate canvas from the HTML content
+      const canvas = await html2canvas(clone, {
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        scale: 2 // Higher quality
+      } as any);
+
+      // Remove the clone
+      document.body.removeChild(clone);
+
+      // Calculate PDF dimensions
+      const imgWidth = 190; // A4 width in mm minus margins
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: imgHeight > 280 ? 'portrait' : 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // Add image to PDF
+      const imgData = canvas.toDataURL('image/png');
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Add first page
+      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+      heightLeft -= 297; // A4 height
+
+      // Add additional pages if needed
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+        heightLeft -= 297;
+      }
+
+      // Download the PDF
+      const fileName = `chat-${viewingLog.user_name}-${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+
+      setSuccess(`PDF downloaded successfully: ${fileName}`);
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: any) {
+      console.error('PDF generation error:', err);
+      setError('Failed to generate PDF. Please try again.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -518,42 +594,55 @@ export default function ChatLogsPage() {
         {viewingLog && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <Card className="w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                      <MessageSquare className="h-6 w-6" />
-                      Chat with {viewingLog.user_name}
-                    </h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Session started: {formatDate(viewingLog.created_at)}
-                    </p>
+              <div ref={chatContentRef}>
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                        <MessageSquare className="h-6 w-6" />
+                        Chat with {viewingLog.user_name}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Session started: {formatDate(viewingLog.created_at)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 print:hidden">
+                      <Button
+                        onClick={handleDownloadPDF}
+                        disabled={isGeneratingPdf || isLoadingMessages || messages.length === 0}
+                        variant="outline"
+                        size="sm"
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                      >
+                        <FileDown className="h-4 w-4 mr-2" />
+                        {isGeneratingPdf ? 'Generating...' : 'Download PDF'}
+                      </Button>
+                      <button
+                        onClick={() => {
+                          setViewingLog(null);
+                          setMessages([]);
+                        }}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="h-6 w-6" />
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    onClick={() => {
-                      setViewingLog(null);
-                      setMessages([]);
-                    }}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="h-6 w-6" />
-                  </button>
                 </div>
-              </div>
 
-              <div className="flex-1 overflow-y-auto p-6">
-                {isLoadingMessages ? (
-                  <div className="text-center py-12">
-                    <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-400 mb-2" />
-                    <p className="text-gray-600">Loading messages...</p>
-                  </div>
-                ) : messages.length === 0 ? (
-                  <div className="text-center py-12">
-                    <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-600">No messages in this chat</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
+                <div className="flex-1 overflow-y-auto p-6">
+                  {isLoadingMessages ? (
+                    <div className="text-center py-12">
+                      <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-400 mb-2" />
+                      <p className="text-gray-600">Loading messages...</p>
+                    </div>
+                  ) : messages.length === 0 ? (
+                    <div className="text-center py-12">
+                      <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-600">No messages in this chat</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
                     {messages.map((message, index) => (
                       <div
                         key={message.id}
@@ -618,11 +707,12 @@ export default function ChatLogsPage() {
                         </div>
                       </div>
                     ))}
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="p-6 border-t border-gray-200 bg-gray-50 print:hidden">
                 <Button
                   onClick={() => {
                     setViewingLog(null);
