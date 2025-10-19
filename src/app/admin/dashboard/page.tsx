@@ -72,7 +72,7 @@ export default function DashboardPage() {
       }
 
       // Load chat logs count and recent chats
-      const chatsResponse = await fetch('/api/admin/chat-logs?page=1&limit=10', {
+      const chatsResponse = await fetch('/api/admin/chat-logs?page=1&limit=5', {
         headers: { 'Authorization': `Bearer ${password}` }
       });
       if (chatsResponse.ok) {
@@ -353,14 +353,7 @@ export default function DashboardPage() {
 
         {/* Recent Chats */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Recent Chats</h2>
-            <Link href="/admin/chats">
-              <Button variant="outline" size="sm">
-                View All Chats
-              </Button>
-            </Link>
-          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Chats</h2>
           <Card className="p-6">
             {isLoading ? (
               <div className="text-center py-8">
@@ -405,6 +398,16 @@ export default function DashboardPage() {
               </div>
             )}
           </Card>
+          {!isLoading && recentChatLogs.length > 0 && (
+            <div className="mt-4 flex justify-center">
+              <Link href="/admin/chats">
+                <Button variant="outline">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  View All Chat Logs
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Helpful Tips */}
