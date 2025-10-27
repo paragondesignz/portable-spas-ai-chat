@@ -42,32 +42,60 @@ function stripHtml(text: string): string {
 
 async function fetchAllBlogPosts(blogHandle: string): Promise<ShopifyBlogPost[]> {
   const allPosts: ShopifyBlogPost[] = [];
-  let page = 1;
-  const limit = 250; // Max allowed by Shopify
 
-  while (true) {
-    const url = `https://portablespas.co.nz/blogs/${blogHandle}.json?limit=${limit}&page=${page}`;
-    console.log(`Fetching blog posts page ${page}...`);
+  // Shopify blogs use Atom feeds, not JSON
+  const url = `https://portablespas.co.nz/blogs/${blogHandle}.atom`;
+  console.log(`Fetching blog posts from Atom feed: ${url}`);
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch blog posts (page ${page})`);
+  const response = await fetch(url);
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`Blog fetch error (${response.status}):`, errorText);
+    throw new Error(`Failed to fetch blog posts from ${url}: ${response.status} ${response.statusText}`);
+  }
+
+  const atomXml = await response.text();
+
+  // Parse Atom XML
+  // Extract entries using regex (simple parsing for XML)
+  const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
+  const entries = atomXml.match(entryRegex) || [];
+
+  console.log(`Found ${entries.length} entries in Atom feed`);
+
+  for (const entry of entries) {
+    // Extract fields from each entry
+    const titleMatch = entry.match(/<title>(.*?)<\/title>/);
+    const idMatch = entry.match(/<id>(.*?)<\/id>/);
+    const publishedMatch = entry.match(/<published>(.*?)<\/published>/);
+    const authorMatch = entry.match(/<author>[\s\S]*?<name>(.*?)<\/name>[\s\S]*?<\/author>/);
+    const contentMatch = entry.match(/<content[^>]*>([\s\S]*?)<\/content>/);
+
+    if (titleMatch && idMatch) {
+      // Extract handle from URL (last part after /)
+      const url = idMatch[1];
+      const handle = url.split('/').pop() || '';
+
+      // Extract content from CDATA if present
+      let bodyHtml = contentMatch ? contentMatch[1] : '';
+      const cdataMatch = bodyHtml.match(/<!\[CDATA\[([\s\S]*?)\]\]>/);
+      if (cdataMatch) {
+        bodyHtml = cdataMatch[1];
+      }
+
+      const post: ShopifyBlogPost = {
+        id: Date.now() + Math.random(), // Generate a fake ID
+        title: titleMatch[1],
+        handle: handle,
+        body_html: bodyHtml,
+        author: authorMatch ? authorMatch[1] : 'Portable Spas',
+        created_at: publishedMatch ? publishedMatch[1] : new Date().toISOString(),
+        published_at: publishedMatch ? publishedMatch[1] : new Date().toISOString(),
+        tags: [] // Atom feeds don't include tags
+      };
+
+      allPosts.push(post);
     }
-
-    const data = await response.json();
-    const posts = data.articles || [];
-
-    if (posts.length === 0) {
-      break; // No more posts
-    }
-
-    allPosts.push(...posts);
-
-    if (posts.length < limit) {
-      break; // Last page
-    }
-
-    page++;
   }
 
   return allPosts;
@@ -172,12 +200,35 @@ export async function POST(req: NextRequest) {
     const blogUrl = body.url || 'https://portablespas.co.nz/blogs/news';
 
     // Extract blog handle from URL (e.g., "news" from "/blogs/news")
-    const blogHandle = blogUrl.split('/blogs/')[1]?.split('?')[0]?.replace(/\/$/, '') || 'news';
+    let blogHandle = 'news';
+    try {
+      const urlParts = blogUrl.split('/blogs/');
+      if (urlParts.length > 1) {
+        blogHandle = urlParts[1].split('?')[0].split('/')[0].replace(/\/$/, '') || 'news';
+      }
+    } catch (error) {
+      console.error('Error parsing blog URL:', error);
+    }
+
+    console.log(`Blog URL: ${blogUrl}, Extracted handle: ${blogHandle}`);
 
     // Fetch all blog posts from Shopify
     console.log(`Fetching blog posts from ${blogHandle}...`);
     const shopifyPosts = await fetchAllBlogPosts(blogHandle);
     console.log(`Found ${shopifyPosts.length} blog posts`);
+
+    if (shopifyPosts.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: 'No blog posts found',
+        stats: {
+          postsFound: 0,
+          fileName: null,
+          fileId: null,
+          oldBlogsDeleted: 0
+        }
+      });
+    }
 
     // Convert to our format
     console.log('Converting blog posts...');
