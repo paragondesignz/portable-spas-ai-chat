@@ -211,19 +211,19 @@ function convertToMarkdown(products: Product[]): string {
 
 export async function POST(req: NextRequest) {
   try {
-    // Verify admin password
+    // Verify admin password or Vercel Cron
     const authHeader = req.headers.get('authorization');
+    const vercelCronHeader = req.headers.get('x-vercel-cron');
     const adminPassword = process.env.ADMIN_PASSWORD;
 
-    if (!adminPassword) {
-      return NextResponse.json(
-        { error: 'Admin password not configured' },
-        { status: 500 }
-      );
-    }
+    // Check if request is from Vercel Cron
+    const isFromCron = vercelCronHeader === '1';
 
+    // Check if request is from admin with password
     const providedPassword = authHeader?.replace('Bearer ', '');
-    if (providedPassword !== adminPassword) {
+    const isFromAdmin = providedPassword && adminPassword && providedPassword === adminPassword;
+
+    if (!isFromCron && !isFromAdmin) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

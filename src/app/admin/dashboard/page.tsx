@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, FileText, MessageSquare, Upload, Type, ShoppingCart, Globe, TrendingUp, Clock, Users, Database, Eye, X, FileDown } from 'lucide-react';
+import { RefreshCw, FileText, MessageSquare, Upload, Type, Package, TrendingUp, Clock, Users, Database, Eye, X, FileDown } from 'lucide-react';
 import { AdminNav } from '@/components/admin-nav';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
 import { useRouter } from 'next/navigation';
@@ -223,18 +223,11 @@ export default function DashboardPage() {
       color: 'green'
     },
     {
-      title: 'Sync Products',
-      description: 'Update product catalog',
-      icon: ShoppingCart,
-      href: '/admin/products',
+      title: 'Content Import',
+      description: 'Import products and blog posts',
+      icon: Package,
+      href: '/admin/content-import',
       color: 'purple'
-    },
-    {
-      title: 'Scrape Website',
-      description: 'Extract website content',
-      icon: Globe,
-      href: '/admin/scraper',
-      color: 'orange'
     },
     {
       title: 'View Files',
