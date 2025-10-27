@@ -164,21 +164,73 @@ function convertToMarkdown(posts: BlogPost[]): string {
   return md;
 }
 
+async function syncBlogToPinecone(blogHandle: string, apiKey: string, assistantName: string) {
+  console.log(`Syncing blog: ${blogHandle}...`);
+
+  // Fetch all blog posts from Shopify
+  const shopifyPosts = await fetchAllBlogPosts(blogHandle);
+  console.log(`Found ${shopifyPosts.length} blog posts from ${blogHandle}`);
+
+  if (shopifyPosts.length === 0) {
+    console.log(`No posts found for ${blogHandle}`);
+    return { postsFound: 0, fileName: null, fileId: null };
+  }
+
+  // Convert to our format
+  const posts = convertShopifyBlogPosts(shopifyPosts, blogHandle);
+
+  // Convert to markdown
+  const markdown = convertToMarkdown(posts);
+
+  // Upload to Pinecone
+  const fileName = `blog-${blogHandle}-${new Date().toISOString().split('T')[0]}.md`;
+
+  // Create FormData for Pinecone API
+  const formData = new FormData();
+  const blob = new Blob([markdown], { type: 'text/markdown' });
+  formData.append('file', blob, fileName);
+
+  const uploadResponse = await fetch(
+    `https://prod-1-data.ke.pinecone.io/assistant/files/${assistantName}`,
+    {
+      method: 'POST',
+      headers: {
+        'Api-Key': apiKey,
+      },
+      body: formData,
+    }
+  );
+
+  if (!uploadResponse.ok) {
+    const errorText = await uploadResponse.text();
+    console.error('Pinecone upload error:', errorText);
+    throw new Error(`Failed to upload to Pinecone: ${uploadResponse.status}`);
+  }
+
+  const result = await uploadResponse.json();
+
+  return {
+    postsFound: posts.length,
+    fileName: fileName,
+    fileId: result.id
+  };
+}
+
 export async function POST(req: NextRequest) {
   try {
-    // Verify admin password
+    // Verify admin password or Vercel Cron
     const authHeader = req.headers.get('authorization');
+    const vercelCronHeader = req.headers.get('x-vercel-cron');
     const adminPassword = process.env.ADMIN_PASSWORD;
 
-    if (!adminPassword) {
-      return NextResponse.json(
-        { error: 'Admin password not configured' },
-        { status: 500 }
-      );
-    }
+    // Check if request is from Vercel Cron
+    const isFromCron = vercelCronHeader === '1';
 
+    // Check if request is from admin with password
     const providedPassword = authHeader?.replace('Bearer ', '');
-    if (providedPassword !== adminPassword) {
+    const isFromAdmin = providedPassword && adminPassword && providedPassword === adminPassword;
+
+    if (!isFromCron && !isFromAdmin) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -195,76 +247,54 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Get blog URL from request body
-    const body = await req.json();
-    const blogUrl = body.url || 'https://portablespas.co.nz/blogs/news';
+    let blogHandles: string[] = [];
+    let totalPostsFound = 0;
+    const syncedBlogs: any[] = [];
 
-    // Extract blog handle from URL (e.g., "news" from "/blogs/news")
-    let blogHandle = 'news';
-    try {
-      const urlParts = blogUrl.split('/blogs/');
-      if (urlParts.length > 1) {
-        blogHandle = urlParts[1].split('?')[0].split('/')[0].replace(/\/$/, '') || 'news';
+    // If from cron, sync both blogs. If from admin, sync the specified blog
+    if (isFromCron) {
+      console.log('Running scheduled blog sync for articles and news...');
+      blogHandles = ['articles', 'news'];
+    } else {
+      // Get blog URL from request body
+      const body = await req.json();
+      const blogUrl = body.url || 'https://portablespas.co.nz/blogs/news';
+
+      // Extract blog handle from URL (e.g., "news" from "/blogs/news")
+      let blogHandle = 'news';
+      try {
+        const urlParts = blogUrl.split('/blogs/');
+        if (urlParts.length > 1) {
+          blogHandle = urlParts[1].split('?')[0].split('/')[0].replace(/\/$/, '') || 'news';
+        }
+      } catch (error) {
+        console.error('Error parsing blog URL:', error);
       }
-    } catch (error) {
-      console.error('Error parsing blog URL:', error);
+
+      console.log(`Manual sync for blog: ${blogHandle}`);
+      blogHandles = [blogHandle];
     }
 
-    console.log(`Blog URL: ${blogUrl}, Extracted handle: ${blogHandle}`);
-
-    // Fetch all blog posts from Shopify
-    console.log(`Fetching blog posts from ${blogHandle}...`);
-    const shopifyPosts = await fetchAllBlogPosts(blogHandle);
-    console.log(`Found ${shopifyPosts.length} blog posts`);
-
-    if (shopifyPosts.length === 0) {
-      return NextResponse.json({
-        success: true,
-        message: 'No blog posts found',
-        stats: {
+    // Sync each blog
+    for (const blogHandle of blogHandles) {
+      try {
+        const result = await syncBlogToPinecone(blogHandle, apiKey, assistantName);
+        totalPostsFound += result.postsFound;
+        syncedBlogs.push({
+          blog: blogHandle,
+          ...result
+        });
+      } catch (error: any) {
+        console.error(`Error syncing ${blogHandle}:`, error);
+        syncedBlogs.push({
+          blog: blogHandle,
+          error: error.message,
           postsFound: 0,
           fileName: null,
-          fileId: null,
-          oldBlogsDeleted: 0
-        }
-      });
-    }
-
-    // Convert to our format
-    console.log('Converting blog posts...');
-    const posts = convertShopifyBlogPosts(shopifyPosts, blogHandle);
-
-    // Convert to markdown
-    console.log('Converting to markdown...');
-    const markdown = convertToMarkdown(posts);
-
-    // Upload to Pinecone
-    console.log('Uploading to Pinecone...');
-    const fileName = `blog-posts-${new Date().toISOString().split('T')[0]}.md`;
-
-    // Create FormData for Pinecone API
-    const formData = new FormData();
-    const blob = new Blob([markdown], { type: 'text/markdown' });
-    formData.append('file', blob, fileName);
-
-    const uploadResponse = await fetch(
-      `https://prod-1-data.ke.pinecone.io/assistant/files/${assistantName}`,
-      {
-        method: 'POST',
-        headers: {
-          'Api-Key': apiKey,
-        },
-        body: formData,
+          fileId: null
+        });
       }
-    );
-
-    if (!uploadResponse.ok) {
-      const errorText = await uploadResponse.text();
-      console.error('Pinecone upload error:', errorText);
-      throw new Error(`Failed to upload to Pinecone: ${uploadResponse.status}`);
     }
-
-    const result = await uploadResponse.json();
 
     // Clean up old blog posts
     console.log('Checking for old blog posts to clean up...');
@@ -286,12 +316,15 @@ export async function POST(req: NextRequest) {
         const filesData = await listResponse.json();
         const files = filesData.files || [];
 
-        // Pattern to match blog post files: blog-posts-YYYY-MM-DD.md
-        const blogPattern = /^blog-posts-\d{4}-\d{2}-\d{2}\.md$/;
+        // Pattern to match blog post files: blog-[handle]-YYYY-MM-DD.md or old format blog-posts-YYYY-MM-DD.md
+        const blogPattern = /^blog-(articles|news|posts)-\d{4}-\d{2}-\d{2}\.md$/;
 
-        // Find all blog post files except the one we just uploaded
+        // Get list of current file names we just uploaded
+        const currentFileNames = syncedBlogs.map(b => b.fileName).filter(Boolean);
+
+        // Find all blog post files except the ones we just uploaded
         const oldBlogs = files.filter((file: any) =>
-          blogPattern.test(file.name) && file.name !== fileName
+          blogPattern.test(file.name) && !currentFileNames.includes(file.name)
         );
 
         console.log(`Found ${oldBlogs.length} old blog posts to delete`);
@@ -327,11 +360,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Blog posts synced successfully',
+      message: isFromCron
+        ? `Automatically synced ${blogHandles.length} blog(s)`
+        : 'Blog posts synced successfully',
       stats: {
-        postsFound: posts.length,
-        fileName: fileName,
-        fileId: result.id,
+        postsFound: totalPostsFound,
+        blogsProcessed: syncedBlogs.length,
+        blogs: syncedBlogs,
         oldBlogsDeleted: deletedCount
       }
     });

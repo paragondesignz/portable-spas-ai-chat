@@ -92,9 +92,17 @@ export default function ContentImportPage() {
       }
 
       const data = await response.json();
-      let message = `Successfully synced ${data.stats.postsFound} blog posts! File: ${data.stats.fileName}`;
+      let message = `Successfully synced ${data.stats.postsFound} blog posts!`;
+
+      if (data.stats.blogs && data.stats.blogs.length > 0) {
+        const blogDetails = data.stats.blogs.map((b: any) =>
+          `${b.blog}: ${b.postsFound} posts (${b.fileName})`
+        ).join(', ');
+        message += ` Details: ${blogDetails}`;
+      }
+
       if (data.stats.oldBlogsDeleted > 0) {
-        message += ` (Removed ${data.stats.oldBlogsDeleted} old blog${data.stats.oldBlogsDeleted > 1 ? 's' : ''})`;
+        message += ` (Removed ${data.stats.oldBlogsDeleted} old blog file${data.stats.oldBlogsDeleted > 1 ? 's' : ''})`;
       }
       setSuccess(message);
 
@@ -233,19 +241,34 @@ export default function ContentImportPage() {
               </p>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded p-4">
+            <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-3">
               <div className="flex gap-2">
                 <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-900">
                   <p className="font-semibold mb-2">How Blog Sync Works</p>
                   <ul className="list-disc list-inside space-y-1 text-blue-800 mb-3">
-                    <li>Fetches all published blog posts from your Shopify blog</li>
+                    <li>Fetches all published blog posts from your Shopify blog via Atom feed</li>
                     <li>Converts blog content to clean Markdown format</li>
-                    <li>Includes post titles, content, and publication dates</li>
-                    <li>Uploads as a dated file: <code className="bg-blue-100 px-1 py-0.5 rounded">blog-posts-YYYY-MM-DD.md</code></li>
+                    <li>Includes post titles, content, authors, and publication dates</li>
+                    <li>Uploads as dated files: <code className="bg-blue-100 px-1 py-0.5 rounded">blog-[name]-YYYY-MM-DD.md</code></li>
                   </ul>
                   <p className="text-blue-800 font-medium">
-                    <strong>Version Control:</strong> Old blog compilations are automatically deleted when a new one is uploaded, keeping only the most recent version.
+                    <strong>Version Control:</strong> Old blog compilations are automatically deleted when new ones are uploaded, keeping only the most recent version.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-green-50 border border-green-200 rounded p-4">
+              <div className="flex gap-2">
+                <RefreshCw className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-green-900">
+                  <p className="font-semibold mb-2">Automatic Weekly Sync</p>
+                  <p className="text-green-800 mb-2">
+                    <strong>Your blog posts are automatically synced every Monday at 2:00 AM.</strong> Both the "Articles" and "News" blogs are synced automatically.
+                  </p>
+                  <p className="text-green-700">
+                    ✓ Blogs synced automatically: <code className="bg-green-100 px-1 py-0.5 rounded">/blogs/articles</code> and <code className="bg-green-100 px-1 py-0.5 rounded">/blogs/news</code>
                   </p>
                 </div>
               </div>
@@ -285,8 +308,9 @@ export default function ContentImportPage() {
                 <li>Made urgent price or content changes</li>
                 <li>Need to test the chatbot with the latest data</li>
               </ul>
-              <p className="mt-2 text-amber-800">
-                💡 Products automatically sync every 48 hours at 2 AM
+              <p className="mt-2 text-amber-800 space-y-1">
+                <span className="block">💡 Products automatically sync every 48 hours at 2 AM</span>
+                <span className="block">📅 Blogs automatically sync every Monday at 2 AM</span>
               </p>
             </div>
           </div>
