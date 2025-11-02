@@ -27,7 +27,8 @@ export interface CallbackRequestData {
  */
 export async function sendCallbackNotification(data: CallbackRequestData) {
   try {
-    const fromEmail = (process.env.FROM_EMAIL || 'noreply@portablespas.co.nz').trim();
+    const emailAddress = (process.env.FROM_EMAIL || 'noreply@portablespas.co.nz').trim();
+    const fromEmail = `Portable Spas NZ AI Assistant <${emailAddress}>`;
     const toEmail = (process.env.NOTIFICATION_EMAIL || 'sales@portablespas.co.nz').trim();
 
     // Format recent conversation
@@ -148,7 +149,8 @@ export async function sendCallbackNotification(data: CallbackRequestData) {
  */
 export async function sendCustomerConfirmation(email: string, userName: string) {
   try {
-    const fromEmail = (process.env.FROM_EMAIL || 'noreply@portablespas.co.nz').trim();
+    const emailAddress = (process.env.FROM_EMAIL || 'noreply@portablespas.co.nz').trim();
+    const fromEmail = `Portable Spas NZ <${emailAddress}>`;
 
     const html = `
       <!DOCTYPE html>
