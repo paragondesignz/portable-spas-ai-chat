@@ -1,6 +1,14 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid build-time errors
+let resend: Resend | null = null;
+
+function getResend(): Resend {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
 
 export interface CallbackRequestData {
   userName: string;
@@ -115,7 +123,7 @@ export async function sendCallbackNotification(data: CallbackRequestData) {
       </html>
     `;
 
-    const { data: emailData, error } = await resend.emails.send({
+    const { data: emailData, error } = await getResend().emails.send({
       from: fromEmail,
       to: toEmail,
       subject: `🔔 New Callback Request - ${data.userName}`,
@@ -195,7 +203,7 @@ export async function sendCustomerConfirmation(email: string, userName: string) 
       </html>
     `;
 
-    const { data: emailData, error } = await resend.emails.send({
+    const { data: emailData, error } = await getResend().emails.send({
       from: fromEmail,
       to: email,
       subject: 'We received your callback request - Portable Spas',
