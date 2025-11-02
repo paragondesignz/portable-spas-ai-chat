@@ -27,8 +27,8 @@ export interface CallbackRequestData {
  */
 export async function sendCallbackNotification(data: CallbackRequestData) {
   try {
-    const fromEmail = process.env.FROM_EMAIL || 'noreply@portablespas.co.nz';
-    const toEmail = process.env.NOTIFICATION_EMAIL || 'sales@portablespas.co.nz';
+    const fromEmail = (process.env.FROM_EMAIL || 'noreply@portablespas.co.nz').trim();
+    const toEmail = (process.env.NOTIFICATION_EMAIL || 'sales@portablespas.co.nz').trim();
 
     // Format recent conversation
     const conversationHtml = data.recentMessages
@@ -104,7 +104,7 @@ export async function sendCallbackNotification(data: CallbackRequestData) {
                 <strong>⏰ Response Target:</strong> Contact within 1-2 hours during business hours
               </p>
               <p style="margin: 10px 0 0 0; font-size: 14px; color: #64748b;">
-                Business Hours: ${process.env.BUSINESS_HOURS_TEXT || 'Monday, Wednesday, Friday: 10am - 4pm NZST'}
+                Business Hours: ${(process.env.BUSINESS_HOURS_TEXT || 'Monday, Wednesday, Friday: 10am - 4pm NZST').trim()}
               </p>
             </div>
 
@@ -148,7 +148,7 @@ export async function sendCallbackNotification(data: CallbackRequestData) {
  */
 export async function sendCustomerConfirmation(email: string, userName: string) {
   try {
-    const fromEmail = process.env.FROM_EMAIL || 'noreply@portablespas.co.nz';
+    const fromEmail = (process.env.FROM_EMAIL || 'noreply@portablespas.co.nz').trim();
 
     const html = `
       <!DOCTYPE html>
@@ -179,7 +179,7 @@ export async function sendCustomerConfirmation(email: string, userName: string) 
             <div style="padding: 15px; background-color: white; border: 1px solid #e5e7eb; border-radius: 6px; margin: 20px 0;">
               <p style="margin: 0; font-weight: bold; color: #1f2937;">Our Business Hours:</p>
               <p style="margin: 5px 0 0 0; color: #4b5563;">
-                ${process.env.BUSINESS_HOURS_TEXT || 'Monday, Wednesday, Friday: 10am - 4pm NZST'}
+                ${(process.env.BUSINESS_HOURS_TEXT || 'Monday, Wednesday, Friday: 10am - 4pm NZST').trim()}
               </p>
             </div>
 
