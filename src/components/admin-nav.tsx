@@ -30,9 +30,9 @@ export function AdminNav({ onLogout }: AdminNavProps) {
               <Image
                 src="/contenscience.svg"
                 alt="ContenScience"
-                width={275}
-                height={82}
-                className="h-18 w-auto"
+                width={180}
+                height={54}
+                className="h-auto w-auto"
               />
               <span className="font-bold text-gray-900 border-l border-gray-300 pl-3">
                 AI Assistant: Portable Spas NZ
