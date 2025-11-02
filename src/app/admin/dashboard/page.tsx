@@ -425,12 +425,24 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {quickLinks.map((link) => {
               const Icon = link.icon;
+              const getColorClasses = () => {
+                const colorMap = {
+                  blue: { bg: 'bg-blue-50 dark:bg-blue-950 group-hover:bg-blue-100 dark:group-hover:bg-blue-900', icon: 'text-blue-600 dark:text-blue-400' },
+                  green: { bg: 'bg-green-50 dark:bg-green-950 group-hover:bg-green-100 dark:group-hover:bg-green-900', icon: 'text-green-600 dark:text-green-400' },
+                  purple: { bg: 'bg-purple-50 dark:bg-purple-950 group-hover:bg-purple-100 dark:group-hover:bg-purple-900', icon: 'text-purple-600 dark:text-purple-400' },
+                  indigo: { bg: 'bg-indigo-50 dark:bg-indigo-950 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900', icon: 'text-indigo-600 dark:text-indigo-400' },
+                  pink: { bg: 'bg-pink-50 dark:bg-pink-950 group-hover:bg-pink-100 dark:group-hover:bg-pink-900', icon: 'text-pink-600 dark:text-pink-400' },
+                };
+                return colorMap[link.color as keyof typeof colorMap] || colorMap.blue;
+              };
+              const colors = getColorClasses();
+
               return (
                 <Link key={link.href} href={link.href}>
                   <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer group">
                     <div className="flex items-start gap-4">
-                      <div className={`p-3 rounded-lg bg-${link.color}-50 group-hover:bg-${link.color}-100 transition-colors`}>
-                        <Icon className={`h-6 w-6 text-${link.color}-600`} />
+                      <div className={`p-3 rounded-lg ${colors.bg} transition-colors`}>
+                        <Icon className={`h-6 w-6 ${colors.icon}`} />
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{link.title}</h3>
@@ -454,7 +466,7 @@ export default function DashboardPage() {
                 <p className="text-gray-600 dark:text-gray-400">Loading chats...</p>
               </div>
             ) : recentChatLogs.length === 0 ? (
-              <div className="text-center py-8 bg-gray-50 rounded">
+              <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded">
                 <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-2" />
                 <p className="text-gray-600 dark:text-gray-400">No recent chats</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -466,7 +478,7 @@ export default function DashboardPage() {
                 {recentChatLogs.map((log) => (
                   <div
                     key={log.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
                     onClick={() => handleViewLog(log)}
                   >
                     <div className="flex items-center gap-3">
@@ -512,7 +524,7 @@ export default function DashboardPage() {
               return (
                 <Card key={index} className="p-6">
                   <div className="flex items-start gap-4">
-                    <div className="p-2 rounded-lg bg-gray-100">
+                    <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700">
                       <Icon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                     </div>
                     <div>
@@ -527,16 +539,16 @@ export default function DashboardPage() {
         </div>
 
         {/* System Info */}
-        <Card className="mt-8 p-6 bg-blue-50 dark:bg-blue-950 border-blue-200">
+        <Card className="mt-8 p-6 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-900">
           <div className="flex gap-3">
-            <Database className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-900">
+            <Database className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-900 dark:text-blue-100">
               <p className="font-semibold mb-1">About the Knowledge Base</p>
               <p className="mb-2">
                 Your AI assistant is powered by Pinecone, which stores and retrieves information using semantic search.
                 This means it can understand context and meaning, not just keywords.
               </p>
-              <p className="text-blue-800">
+              <p className="text-blue-800 dark:text-blue-200">
                 💡 The more accurate and comprehensive your knowledge base, the better your assistant performs.
               </p>
             </div>
@@ -546,7 +558,7 @@ export default function DashboardPage() {
 
       {/* Chat View Modal */}
       {viewingLog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center p-4 z-50">
           <Card className="w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
             <div ref={chatContentRef} className="flex flex-col flex-1 min-h-0">
               <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
@@ -606,7 +618,7 @@ export default function DashboardPage() {
                           className={`max-w-[75%] rounded-lg px-4 py-3 ${
                             message.role === 'user'
                               ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 text-gray-900 dark:text-gray-100'
+                              : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
                           }`}
                         >
                           <div className="text-xs font-medium mb-1 opacity-75">

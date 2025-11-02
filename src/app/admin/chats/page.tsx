@@ -506,7 +506,7 @@ export default function ChatLogsPage() {
               <p className="text-gray-600 dark:text-gray-400">Loading chat logs...</p>
             </div>
           ) : logs.length === 0 ? (
-            <div className="text-center py-12 bg-gray-50 rounded">
+            <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded">
               <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-2" />
               <p className="text-gray-600 dark:text-gray-400">No chat logs found</p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -538,7 +538,7 @@ export default function ChatLogsPage() {
                     {logs.filter(log => !showCallbacksOnly || log.callback_requested).map((log) => (
                       <tr
                         key={log.id}
-                        className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                        className={`border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
                           log.callback_requested && !log.contacted ? 'bg-blue-50 dark:bg-blue-950' : ''
                         }`}
                       >
@@ -778,7 +778,7 @@ export default function ChatLogsPage() {
                                       <strong {...props} className="font-semibold" />
                                     ),
                                     code: ({ node, ...props }) => (
-                                      <code {...props} className="bg-gray-700 px-1 rounded text-xs" />
+                                      <code {...props} className="bg-gray-200 dark:bg-gray-700 px-1 rounded text-xs" />
                                     ),
                                   }}
                                 >

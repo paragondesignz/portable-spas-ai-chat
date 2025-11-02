@@ -243,7 +243,7 @@ export default function FilesPage() {
               <p className="text-gray-600 dark:text-gray-400">Loading files...</p>
             </div>
           ) : files.length === 0 ? (
-            <div className="text-center py-12 bg-gray-50 rounded">
+            <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-2" />
               <p className="text-gray-600 dark:text-gray-400">No files uploaded yet</p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -282,7 +282,7 @@ export default function FilesPage() {
                   {sortedFiles.map((file) => (
                     <tr
                       key={file.id}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     >
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
@@ -354,7 +354,7 @@ export default function FilesPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="bg-gray-50 rounded p-4 space-y-3">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded p-4 space-y-3">
                     <div>
                       <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Name</label>
                       <p className="text-gray-900 dark:text-gray-100 font-mono text-sm">{viewingFile.name}</p>
