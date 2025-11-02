@@ -12,7 +12,6 @@ import ReactMarkdown from 'react-markdown';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import UsageChart from '@/components/admin/usage-chart';
-import DayChatsModal from '@/components/admin/day-chats-modal';
 import { format } from 'date-fns';
 
 interface DashboardStats {
@@ -68,7 +67,6 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [chartRange, setChartRange] = useState(30);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [recentChatLogs, setRecentChatLogs] = useState<ChatLog[]>([]);
   const [viewingLog, setViewingLog] = useState<ChatLog | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -417,7 +415,6 @@ export default function DashboardPage() {
               data={stats.chatsOverTime}
               range={chartRange}
               onRangeChange={setChartRange}
-              onBarClick={setSelectedDate}
             />
           </div>
         )}
@@ -683,13 +680,6 @@ export default function DashboardPage() {
           </Card>
         </div>
       )}
-
-      {/* Day Chats Modal */}
-      <DayChatsModal
-        date={selectedDate}
-        onClose={() => setSelectedDate(null)}
-        onViewChat={handleViewLog}
-      />
     </div>
   );
 }

@@ -24,7 +24,6 @@ interface UsageChartProps {
   data: ChartData[];
   range: number;
   onRangeChange: (range: number) => void;
-  onBarClick: (date: string) => void;
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -67,7 +66,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             </div>
           )}
         </div>
-        <p className="text-xs text-gray-400 mt-2">Click to view chats</p>
       </div>
     );
   }
@@ -75,7 +73,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export default function UsageChart({ data, range, onRangeChange, onBarClick }: UsageChartProps) {
+export default function UsageChart({ data, range, onRangeChange }: UsageChartProps) {
   const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set());
 
   const handleLegendClick = (dataKey: string) => {
@@ -121,11 +119,6 @@ export default function UsageChart({ data, range, onRangeChange, onBarClick }: U
         <BarChart
           data={data}
           margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-          onClick={(e) => {
-            if (e && e.activeLabel) {
-              onBarClick(e.activeLabel);
-            }
-          }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis
@@ -164,7 +157,6 @@ export default function UsageChart({ data, range, onRangeChange, onBarClick }: U
               radius={[8, 8, 0, 0]}
               animationDuration={1000}
               animationBegin={0}
-              cursor="pointer"
             />
           )}
           {!hiddenSeries.has('messages') && (
@@ -174,7 +166,6 @@ export default function UsageChart({ data, range, onRangeChange, onBarClick }: U
               radius={[8, 8, 0, 0]}
               animationDuration={1000}
               animationBegin={100}
-              cursor="pointer"
             />
           )}
           <defs>
@@ -189,10 +180,6 @@ export default function UsageChart({ data, range, onRangeChange, onBarClick }: U
           </defs>
         </BarChart>
       </ResponsiveContainer>
-
-      <div className="mt-4 text-center text-sm text-gray-500">
-        Click on any bar to view chats from that day
-      </div>
     </div>
   );
 }
