@@ -32,7 +32,7 @@ export function AdminNav({ onLogout }: AdminNavProps) {
                 alt="ContenScience"
                 width={180}
                 height={54}
-                className="h-auto w-auto"
+                className="w-[180px] h-auto"
               />
               <span className="font-bold text-gray-900 border-l border-gray-300 pl-3">
                 AI Assistant: Portable Spas NZ
