@@ -201,7 +201,7 @@ export default function DashboardPage() {
 
   if (isChecking) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
       </div>
     );
@@ -209,12 +209,12 @@ export default function DashboardPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md p-8">
           <div className="flex flex-col items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-100">Admin Login Required</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Admin Login Required</h1>
           </div>
-          <p className="text-center text-gray-600 dark:text-gray-400 dark:text-gray-400 mb-4">
+          <p className="text-center text-gray-600 mb-4">
             Please login from the main admin page
           </p>
           <Button onClick={() => router.push('/admin')} className="w-full">
@@ -297,14 +297,14 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50">
       <AdminNav onLogout={handleLogout} />
 
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-100 mb-2">Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-400 dark:text-gray-400">Welcome to the Portable Spas AI Assistant admin panel</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+          <p className="text-gray-600">Welcome to the Portable Spas AI Assistant admin panel</p>
         </div>
 
         {/* Stats Grid */}
@@ -313,8 +313,8 @@ export default function DashboardPage() {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Chats</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                <p className="text-sm text-gray-600 mb-1">Total Chats</p>
+                <p className="text-3xl font-bold text-gray-900">
                   {isLoading || !stats ? '...' : stats.total.total.toLocaleString()}
                 </p>
               </div>
@@ -326,7 +326,7 @@ export default function DashboardPage() {
                 <span className="font-medium">
                   {stats.total.percentChange >= 0 ? '+' : ''}{stats.total.percentChange.toFixed(1)}%
                 </span>
-                <span className="text-gray-500 dark:text-gray-400 ml-1">vs last 30 days</span>
+                <span className="text-gray-500 ml-1">vs last 30 days</span>
               </div>
             )}
           </Card>
@@ -335,8 +335,8 @@ export default function DashboardPage() {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Chats Today</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                <p className="text-sm text-gray-600 mb-1">Chats Today</p>
+                <p className="text-3xl font-bold text-gray-900">
                   {isLoading || !stats ? '...' : stats.today.today}
                 </p>
               </div>
@@ -348,7 +348,7 @@ export default function DashboardPage() {
                 <span className="font-medium">
                   {stats.today.percentChange >= 0 ? '+' : ''}{stats.today.percentChange.toFixed(1)}%
                 </span>
-                <span className="text-gray-500 dark:text-gray-400 ml-1">vs yesterday</span>
+                <span className="text-gray-500 ml-1">vs yesterday</span>
               </div>
             )}
           </Card>
@@ -357,8 +357,8 @@ export default function DashboardPage() {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Chats This Week</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                <p className="text-sm text-gray-600 mb-1">Chats This Week</p>
+                <p className="text-3xl font-bold text-gray-900">
                   {isLoading || !stats ? '...' : stats.week.thisWeek}
                 </p>
               </div>
@@ -370,7 +370,7 @@ export default function DashboardPage() {
                 <span className="font-medium">
                   {stats.week.percentChange >= 0 ? '+' : ''}{stats.week.percentChange.toFixed(1)}%
                 </span>
-                <span className="text-gray-500 dark:text-gray-400 ml-1">vs last week</span>
+                <span className="text-gray-500 ml-1">vs last week</span>
               </div>
             )}
           </Card>
@@ -379,27 +379,27 @@ export default function DashboardPage() {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Knowledge Base</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                <p className="text-sm text-gray-600 mb-1">Knowledge Base</p>
+                <p className="text-3xl font-bold text-gray-900">
                   {isLoading || !stats ? '...' : stats.knowledgeBase.fileCount}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">files</p>
+                <p className="text-xs text-gray-500">files</p>
               </div>
               <Database className="h-12 w-12 text-indigo-500 opacity-20" />
             </div>
             {!isLoading && stats && (
               <div className="flex gap-2 text-xs">
                 <div className={`px-2 py-1 rounded-full ${
-                  stats.knowledgeBase.productSyncStatus === 'fresh' ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' :
-                  stats.knowledgeBase.productSyncStatus === 'warning' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300' :
-                  'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
+                  stats.knowledgeBase.productSyncStatus === 'fresh' ? 'bg-green-100 text-green-700' :
+                  stats.knowledgeBase.productSyncStatus === 'warning' ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-red-100 text-red-700'
                 }`}>
                   Products
                 </div>
                 <div className={`px-2 py-1 rounded-full ${
-                  stats.knowledgeBase.blogSyncStatus === 'fresh' ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' :
-                  stats.knowledgeBase.blogSyncStatus === 'warning' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300' :
-                  'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
+                  stats.knowledgeBase.blogSyncStatus === 'fresh' ? 'bg-green-100 text-green-700' :
+                  stats.knowledgeBase.blogSyncStatus === 'warning' ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-red-100 text-red-700'
                 }`}>
                   Blog
                 </div>
@@ -421,17 +421,17 @@ export default function DashboardPage() {
 
         {/* Quick Links */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {quickLinks.map((link) => {
               const Icon = link.icon;
               const getColorClasses = () => {
                 const colorMap = {
-                  blue: { bg: 'bg-blue-50 dark:bg-blue-950 group-hover:bg-blue-100 dark:group-hover:bg-blue-900', icon: 'text-blue-600 dark:text-blue-400' },
-                  green: { bg: 'bg-green-50 dark:bg-green-950 group-hover:bg-green-100 dark:group-hover:bg-green-900', icon: 'text-green-600 dark:text-green-400' },
-                  purple: { bg: 'bg-purple-50 dark:bg-purple-950 group-hover:bg-purple-100 dark:group-hover:bg-purple-900', icon: 'text-purple-600 dark:text-purple-400' },
-                  indigo: { bg: 'bg-indigo-50 dark:bg-indigo-950 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900', icon: 'text-indigo-600 dark:text-indigo-400' },
-                  pink: { bg: 'bg-pink-50 dark:bg-pink-950 group-hover:bg-pink-100 dark:group-hover:bg-pink-900', icon: 'text-pink-600 dark:text-pink-400' },
+                  blue: { bg: 'bg-blue-50 group-hover:bg-blue-100', icon: 'text-blue-600' },
+                  green: { bg: 'bg-green-50 group-hover:bg-green-100', icon: 'text-green-600' },
+                  purple: { bg: 'bg-purple-50 group-hover:bg-purple-100', icon: 'text-purple-600' },
+                  indigo: { bg: 'bg-indigo-50 group-hover:bg-indigo-100', icon: 'text-indigo-600' },
+                  pink: { bg: 'bg-pink-50 group-hover:bg-pink-100', icon: 'text-pink-600' },
                 };
                 return colorMap[link.color as keyof typeof colorMap] || colorMap.blue;
               };
@@ -445,8 +445,8 @@ export default function DashboardPage() {
                         <Icon className={`h-6 w-6 ${colors.icon}`} />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{link.title}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{link.description}</p>
+                        <h3 className="font-semibold text-gray-900 mb-1">{link.title}</h3>
+                        <p className="text-sm text-gray-600">{link.description}</p>
                       </div>
                     </div>
                   </Card>
@@ -458,18 +458,18 @@ export default function DashboardPage() {
 
         {/* Recent Chats */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Chats</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Chats</h2>
           <Card className="p-6">
             {isLoading ? (
               <div className="text-center py-8">
                 <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-400 mb-2" />
-                <p className="text-gray-600 dark:text-gray-400">Loading chats...</p>
+                <p className="text-gray-600">Loading chats...</p>
               </div>
             ) : recentChatLogs.length === 0 ? (
-              <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded">
+              <div className="text-center py-8 bg-gray-50 rounded">
                 <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600 dark:text-gray-400">No recent chats</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-gray-600">No recent chats</p>
+                <p className="text-sm text-gray-500 mt-1">
                   Chat logs will appear here as customers interact with the chatbot
                 </p>
               </div>
@@ -478,14 +478,14 @@ export default function DashboardPage() {
                 {recentChatLogs.map((log) => (
                   <div
                     key={log.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
+                    className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                     onClick={() => handleViewLog(log)}
                   >
                     <div className="flex items-center gap-3">
                       <MessageSquare className="h-5 w-5 text-gray-400 flex-shrink-0" />
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{log.user_name}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="font-medium text-gray-900">{log.user_name}</p>
+                        <p className="text-sm text-gray-500">
                           Started: {formatDate(log.created_at)}
                         </p>
                       </div>
@@ -493,7 +493,7 @@ export default function DashboardPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-blue-600 hover:text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:bg-blue-950"
+                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                     >
                       <Eye className="h-4 w-4 mr-1" />
                       View
@@ -517,19 +517,19 @@ export default function DashboardPage() {
 
         {/* Helpful Tips */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Helpful Tips</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Helpful Tips</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {helpfulTips.map((tip, index) => {
               const Icon = tip.icon;
               return (
                 <Card key={index} className="p-6">
                   <div className="flex items-start gap-4">
-                    <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700">
-                      <Icon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                    <div className="p-2 rounded-lg bg-gray-100">
+                      <Icon className="h-5 w-5 text-gray-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{tip.title}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{tip.description}</p>
+                      <h3 className="font-semibold text-gray-900 mb-1">{tip.title}</h3>
+                      <p className="text-sm text-gray-600">{tip.description}</p>
                     </div>
                   </div>
                 </Card>
@@ -539,16 +539,16 @@ export default function DashboardPage() {
         </div>
 
         {/* System Info */}
-        <Card className="mt-8 p-6 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-900">
+        <Card className="mt-8 p-6 bg-blue-50 border-blue-200">
           <div className="flex gap-3">
-            <Database className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-900 dark:text-blue-100">
+            <Database className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-900">
               <p className="font-semibold mb-1">About the Knowledge Base</p>
               <p className="mb-2">
                 Your AI assistant is powered by Pinecone, which stores and retrieves information using semantic search.
                 This means it can understand context and meaning, not just keywords.
               </p>
-              <p className="text-blue-800 dark:text-blue-200">
+              <p className="text-blue-800">
                 💡 The more accurate and comprehensive your knowledge base, the better your assistant performs.
               </p>
             </div>
@@ -558,17 +558,17 @@ export default function DashboardPage() {
 
       {/* Chat View Modal */}
       {viewingLog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <Card className="w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
             <div ref={chatContentRef} className="flex flex-col flex-1 min-h-0">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+              <div className="p-6 border-b border-gray-200 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                    <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                       <MessageSquare className="h-6 w-6" />
                       Chat with {viewingLog.user_name}
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <p className="text-sm text-gray-600 mt-1">
                       Session started: {formatDate(viewingLog.created_at)}
                     </p>
                   </div>
@@ -578,7 +578,7 @@ export default function DashboardPage() {
                       disabled={isGeneratingPdf || isLoadingMessages || messages.length === 0}
                       variant="outline"
                       size="sm"
-                      className="text-green-600 hover:text-green-700 dark:text-green-300 hover:bg-green-50"
+                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
                     >
                       <FileDown className="h-4 w-4 mr-2" />
                       {isGeneratingPdf ? 'Generating...' : 'Download PDF'}
@@ -588,7 +588,7 @@ export default function DashboardPage() {
                         setViewingLog(null);
                         setMessages([]);
                       }}
-                      className="text-gray-400 hover:text-gray-600 dark:text-gray-400"
+                      className="text-gray-400 hover:text-gray-600"
                     >
                       <X className="h-6 w-6" />
                     </button>
@@ -600,12 +600,12 @@ export default function DashboardPage() {
                 {isLoadingMessages ? (
                   <div className="text-center py-12">
                     <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-400 mb-2" />
-                    <p className="text-gray-600 dark:text-gray-400">Loading messages...</p>
+                    <p className="text-gray-600">Loading messages...</p>
                   </div>
                 ) : messages.length === 0 ? (
                   <div className="text-center py-12">
                     <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-600 dark:text-gray-400">No messages in this chat</p>
+                    <p className="text-gray-600">No messages in this chat</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -618,7 +618,7 @@ export default function DashboardPage() {
                           className={`max-w-[75%] rounded-lg px-4 py-3 ${
                             message.role === 'user'
                               ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                              : 'bg-gray-100 text-gray-900'
                           }`}
                         >
                           <div className="text-xs font-medium mb-1 opacity-75">
@@ -678,7 +678,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 flex-shrink-0 print:hidden">
+            <div className="p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0 print:hidden">
               <Button
                 onClick={() => {
                   setViewingLog(null);

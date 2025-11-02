@@ -374,13 +374,13 @@ export default function ChatLogsPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md p-8">
           <div className="flex flex-col items-center mb-6">
             <Lock className="h-12 w-12 text-gray-400 mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Admin Login Required</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Admin Login Required</h1>
           </div>
-          <p className="text-center text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-center text-gray-600 mb-4">
             Please login from the main admin page
           </p>
           <Button onClick={() => router.push('/admin')} className="w-full">
@@ -392,13 +392,13 @@ export default function ChatLogsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50">
       <AdminNav onLogout={handleLogout} />
 
       <div className="max-w-7xl mx-auto p-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Chat Logs</h1>
-          <p className="text-gray-600 dark:text-gray-400">View and manage customer chat conversations</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Chat Logs</h1>
+          <p className="text-gray-600">View and manage customer chat conversations</p>
         </div>
 
         {/* Search and Actions */}
@@ -424,7 +424,7 @@ export default function ChatLogsPage() {
             </div>
 
             {selectedLogs.size > 0 && (
-              <div className="flex items-center justify-between bg-blue-50 dark:bg-blue-950 border border-blue-200 rounded p-3">
+              <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded p-3">
                 <span className="text-sm text-blue-900">
                   {selectedLogs.size} chat log(s) selected
                 </span>
@@ -433,7 +433,7 @@ export default function ChatLogsPage() {
                     onClick={handleExportSelected}
                     variant="outline"
                     size="sm"
-                    className="text-green-600 hover:text-green-700 dark:text-green-300 hover:bg-green-50"
+                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
                   >
                     <Download className="h-4 w-4 mr-2" />
                     Export CSV
@@ -461,7 +461,7 @@ export default function ChatLogsPage() {
         )}
 
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 dark:text-green-300 px-4 py-3 rounded mb-6">
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
             {success}
           </div>
         )}
@@ -470,7 +470,7 @@ export default function ChatLogsPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                 <MessageSquare className="h-5 w-5" />
                 Chat Logs ({total})
               </h2>
@@ -492,7 +492,7 @@ export default function ChatLogsPage() {
                 disabled={isLoading}
                 variant="outline"
                 size="sm"
-                className="text-green-600 hover:text-green-700 dark:text-green-300 hover:bg-green-50"
+                className="text-green-600 hover:text-green-700 hover:bg-green-50"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Export All
@@ -503,13 +503,13 @@ export default function ChatLogsPage() {
           {isLoading ? (
             <div className="text-center py-12">
               <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-400 mb-2" />
-              <p className="text-gray-600 dark:text-gray-400">Loading chat logs...</p>
+              <p className="text-gray-600">Loading chat logs...</p>
             </div>
           ) : logs.length === 0 ? (
-            <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded">
+            <div className="text-center py-12 bg-gray-50 rounded">
               <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-600 dark:text-gray-400">No chat logs found</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-gray-600">No chat logs found</p>
+              <p className="text-sm text-gray-500 mt-1">
                 {searchQuery ? 'Try a different search query' : 'Chat logs will appear here as customers interact with the chatbot'}
               </p>
             </div>
@@ -518,7 +518,7 @@ export default function ChatLogsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <tr className="border-b border-gray-200">
                       <th className="text-left py-3 px-4 w-12">
                         <input
                           type="checkbox"
@@ -538,8 +538,8 @@ export default function ChatLogsPage() {
                     {logs.filter(log => !showCallbacksOnly || log.callback_requested).map((log) => (
                       <tr
                         key={log.id}
-                        className={`border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-                          log.callback_requested && !log.contacted ? 'bg-blue-50 dark:bg-blue-950' : ''
+                        className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                          log.callback_requested && !log.contacted ? 'bg-blue-50' : ''
                         }`}
                       >
                         <td className="py-3 px-4">
@@ -553,7 +553,7 @@ export default function ChatLogsPage() {
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
                             <MessageSquare className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                            <span className="font-medium text-gray-900 dark:text-gray-100">{log.user_name}</span>
+                            <span className="font-medium text-gray-900">{log.user_name}</span>
                             {log.callback_requested && !log.contacted && (
                               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-600 text-white">
                                 <Phone className="h-3 w-3 mr-1" />
@@ -566,13 +566,13 @@ export default function ChatLogsPage() {
                           {log.callback_requested ? (
                             <div className="flex flex-col gap-1">
                               {log.contact_email && (
-                                <a href={`mailto:${log.contact_email}`} className="flex items-center gap-1 text-blue-600 hover:text-blue-700 dark:text-blue-300">
+                                <a href={`mailto:${log.contact_email}`} className="flex items-center gap-1 text-blue-600 hover:text-blue-700">
                                   <Mail className="h-3 w-3" />
                                   <span className="text-xs">{log.contact_email}</span>
                                 </a>
                               )}
                               {log.contact_phone && (
-                                <a href={`tel:${log.contact_phone}`} className="flex items-center gap-1 text-blue-600 hover:text-blue-700 dark:text-blue-300">
+                                <a href={`tel:${log.contact_phone}`} className="flex items-center gap-1 text-blue-600 hover:text-blue-700">
                                   <Phone className="h-3 w-3" />
                                   <span className="text-xs">{log.contact_phone}</span>
                                 </a>
@@ -582,10 +582,10 @@ export default function ChatLogsPage() {
                             <span className="text-gray-400 text-xs">—</span>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                        <td className="py-3 px-4 text-sm text-gray-600">
                           {formatDate(log.created_at)}
                         </td>
-                        <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                        <td className="py-3 px-4 text-sm text-gray-600">
                           {formatDate(log.updated_at)}
                         </td>
                         <td className="py-3 px-4">
@@ -594,7 +594,7 @@ export default function ChatLogsPage() {
                               onClick={() => handleViewLog(log)}
                               variant="outline"
                               size="sm"
-                              className="text-blue-600 hover:text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:bg-blue-950"
+                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                             >
                               <Eye className="h-4 w-4 mr-1" />
                               View
@@ -609,8 +609,8 @@ export default function ChatLogsPage() {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
+                  <p className="text-sm text-gray-600">
                     Page {currentPage} of {totalPages}
                   </p>
                   <div className="flex gap-2">
@@ -644,18 +644,18 @@ export default function ChatLogsPage() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <Card className="w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
               <div ref={chatContentRef} className="flex flex-col flex-1 min-h-0">
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+                <div className="p-6 border-b border-gray-200 flex-shrink-0">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                      <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                         <MessageSquare className="h-6 w-6" />
                         Chat with {viewingLog.user_name}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      <p className="text-sm text-gray-600 mt-1">
                         Session started: {formatDate(viewingLog.created_at)}
                       </p>
                       {viewingLog.callback_requested && (
-                        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 rounded-lg">
+                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                           <div className="flex items-center gap-2 mb-2">
                             <Phone className="h-4 w-4 text-blue-600" />
                             <span className="text-sm font-semibold text-blue-900">Callback Requested</span>
@@ -669,7 +669,7 @@ export default function ChatLogsPage() {
                             {viewingLog.contact_email && (
                               <div className="flex items-center gap-2">
                                 <Mail className="h-3 w-3 text-blue-600" />
-                                <a href={`mailto:${viewingLog.contact_email}`} className="text-blue-600 hover:text-blue-700 dark:text-blue-300 hover:underline">
+                                <a href={`mailto:${viewingLog.contact_email}`} className="text-blue-600 hover:text-blue-700 hover:underline">
                                   {viewingLog.contact_email}
                                 </a>
                               </div>
@@ -677,7 +677,7 @@ export default function ChatLogsPage() {
                             {viewingLog.contact_phone && (
                               <div className="flex items-center gap-2">
                                 <Phone className="h-3 w-3 text-blue-600" />
-                                <a href={`tel:${viewingLog.contact_phone}`} className="text-blue-600 hover:text-blue-700 dark:text-blue-300 hover:underline">
+                                <a href={`tel:${viewingLog.contact_phone}`} className="text-blue-600 hover:text-blue-700 hover:underline">
                                   {viewingLog.contact_phone}
                                 </a>
                               </div>
@@ -685,7 +685,7 @@ export default function ChatLogsPage() {
                             {viewingLog.callback_notes && (
                               <div className="flex items-start gap-2">
                                 <Clock className="h-3 w-3 text-blue-600 mt-0.5" />
-                                <span className="text-blue-700 dark:text-blue-300">Best time: {viewingLog.callback_notes}</span>
+                                <span className="text-blue-700">Best time: {viewingLog.callback_notes}</span>
                               </div>
                             )}
                           </div>
@@ -698,7 +698,7 @@ export default function ChatLogsPage() {
                         disabled={isGeneratingPdf || isLoadingMessages || messages.length === 0}
                         variant="outline"
                         size="sm"
-                        className="text-green-600 hover:text-green-700 dark:text-green-300 hover:bg-green-50"
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
                       >
                         <FileDown className="h-4 w-4 mr-2" />
                         {isGeneratingPdf ? 'Generating...' : 'Download PDF'}
@@ -708,7 +708,7 @@ export default function ChatLogsPage() {
                           setViewingLog(null);
                           setMessages([]);
                         }}
-                        className="text-gray-400 hover:text-gray-600 dark:text-gray-400"
+                        className="text-gray-400 hover:text-gray-600"
                       >
                         <X className="h-6 w-6" />
                       </button>
@@ -720,12 +720,12 @@ export default function ChatLogsPage() {
                   {isLoadingMessages ? (
                     <div className="text-center py-12">
                       <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-400 mb-2" />
-                      <p className="text-gray-600 dark:text-gray-400">Loading messages...</p>
+                      <p className="text-gray-600">Loading messages...</p>
                     </div>
                   ) : messages.length === 0 ? (
                     <div className="text-center py-12">
                       <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-600 dark:text-gray-400">No messages in this chat</p>
+                      <p className="text-gray-600">No messages in this chat</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -738,7 +738,7 @@ export default function ChatLogsPage() {
                           className={`max-w-[75%] rounded-lg px-4 py-3 ${
                             message.role === 'user'
                               ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 text-gray-900 dark:text-gray-100'
+                              : 'bg-gray-100 text-gray-900'
                           }`}
                         >
                           <div className="text-xs font-medium mb-1 opacity-75">
@@ -778,7 +778,7 @@ export default function ChatLogsPage() {
                                       <strong {...props} className="font-semibold" />
                                     ),
                                     code: ({ node, ...props }) => (
-                                      <code {...props} className="bg-gray-200 dark:bg-gray-700 px-1 rounded text-xs" />
+                                      <code {...props} className="bg-gray-200 px-1 rounded text-xs" />
                                     ),
                                   }}
                                 >
@@ -798,7 +798,7 @@ export default function ChatLogsPage() {
                 </div>
               </div>
 
-              <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 flex-shrink-0 print:hidden">
+              <div className="p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0 print:hidden">
                 <Button
                   onClick={() => {
                     setViewingLog(null);

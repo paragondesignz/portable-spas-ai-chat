@@ -4,7 +4,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { DarkModeToggle } from '@/components/dark-mode-toggle';
 import { FileText, Upload, Type, Package, MessageSquare } from 'lucide-react';
 
 interface AdminNavProps {
@@ -23,7 +22,7 @@ export function AdminNav({ onLogout }: AdminNavProps) {
   ];
 
   return (
-    <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+    <div className="bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-8">
@@ -31,11 +30,11 @@ export function AdminNav({ onLogout }: AdminNavProps) {
               <Image
                 src="/contenscience.svg"
                 alt="ContenScience"
-                width={250}
-                height={75}
-                className="h-16 w-auto"
+                width={275}
+                height={82}
+                className="h-18 w-auto"
               />
-              <span className="font-bold text-gray-900 dark:text-gray-100 border-l border-gray-300 dark:border-gray-700 pl-3">
+              <span className="font-bold text-gray-900 border-l border-gray-300 pl-3">
                 AI Assistant: Portable Spas NZ
               </span>
             </Link>
@@ -52,7 +51,7 @@ export function AdminNav({ onLogout }: AdminNavProps) {
                     className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                       isActive
                         ? 'bg-primary text-white'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -63,12 +62,9 @@ export function AdminNav({ onLogout }: AdminNavProps) {
             </nav>
           </div>
 
-          <div className="flex items-center gap-2">
-            <DarkModeToggle />
-            <Button onClick={onLogout} variant="outline" size="sm">
-              Logout
-            </Button>
-          </div>
+          <Button onClick={onLogout} variant="outline" size="sm">
+            Logout
+          </Button>
         </div>
       </div>
     </div>

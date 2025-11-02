@@ -115,13 +115,13 @@ export default function ContentImportPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md p-8">
           <div className="flex flex-col items-center mb-6">
             <Lock className="h-12 w-12 text-gray-400 mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Admin Login Required</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Admin Login Required</h1>
           </div>
-          <p className="text-center text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-center text-gray-600 mb-4">
             Please login from the main admin page
           </p>
           <Button onClick={() => router.push('/admin')} className="w-full">
@@ -133,13 +133,13 @@ export default function ContentImportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50">
       <AdminNav onLogout={handleLogout} />
 
       <div className="max-w-4xl mx-auto p-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Content Import</h1>
-          <p className="text-gray-600 dark:text-gray-400">Import content from Shopify and your blog to Pinecone</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Content Import</h1>
+          <p className="text-gray-600">Import content from Shopify and your blog to Pinecone</p>
         </div>
 
         {error && (
@@ -150,7 +150,7 @@ export default function ContentImportPage() {
         )}
 
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 dark:text-green-300 px-4 py-3 rounded mb-6">
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
             {success}
           </div>
         )}
@@ -159,11 +159,11 @@ export default function ContentImportPage() {
         <Card className="p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
             <ShoppingCart className="h-6 w-6 text-purple-600" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Shopify Products</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Shopify Products</h2>
           </div>
 
           <div className="space-y-4">
-            <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 rounded p-4">
+            <div className="bg-blue-50 border border-blue-200 rounded p-4">
               <div className="flex gap-2">
                 <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-900">
@@ -210,7 +210,7 @@ export default function ContentImportPage() {
               <p className="text-green-800">
                 <strong>Your product catalog is automatically imported every 48 hours at 2:00 AM.</strong> This ensures your chatbot always has up-to-date product information without any manual intervention.
               </p>
-              <p className="mt-2 text-green-700 dark:text-green-300">
+              <p className="mt-2 text-green-700">
                 ✓ No manual syncing needed for regular updates
               </p>
             </div>
@@ -221,7 +221,7 @@ export default function ContentImportPage() {
         <Card className="p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
             <BookOpen className="h-6 w-6 text-orange-600" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Blog Posts</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Blog Posts</h2>
           </div>
 
           <div className="space-y-4">
@@ -236,12 +236,12 @@ export default function ContentImportPage() {
                 placeholder="https://portablespas.co.nz/blogs/news"
                 className="w-full"
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-xs text-gray-500 mt-1">
                 Enter your Shopify blog URL (e.g., /blogs/news or /blogs/help)
               </p>
             </div>
 
-            <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 rounded p-4 mb-3">
+            <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-3">
               <div className="flex gap-2">
                 <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-900">
@@ -267,8 +267,8 @@ export default function ContentImportPage() {
                   <p className="text-green-800 mb-2">
                     <strong>Your blog posts are automatically synced every Monday at 2:00 AM.</strong> Both the "Articles" and "News" blogs are synced automatically.
                   </p>
-                  <p className="text-green-700 dark:text-green-300">
-                    ✓ Blogs synced automatically: <code className="bg-green-100 dark:bg-green-900 px-1 py-0.5 rounded">/blogs/articles</code> and <code className="bg-green-100 dark:bg-green-900 px-1 py-0.5 rounded">/blogs/news</code>
+                  <p className="text-green-700">
+                    ✓ Blogs synced automatically: <code className="bg-green-100 px-1 py-0.5 rounded">/blogs/articles</code> and <code className="bg-green-100 px-1 py-0.5 rounded">/blogs/news</code>
                   </p>
                 </div>
               </div>
