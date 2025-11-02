@@ -307,6 +307,43 @@ export default function DashboardPage() {
           <p className="text-gray-600">Welcome to the Portable Spas AI Assistant admin panel</p>
         </div>
 
+        {/* Quick Links */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {quickLinks.map((link) => {
+              const Icon = link.icon;
+              const getColorClasses = () => {
+                const colorMap = {
+                  blue: { bg: 'bg-blue-50 group-hover:bg-blue-100', icon: 'text-blue-600' },
+                  green: { bg: 'bg-green-50 group-hover:bg-green-100', icon: 'text-green-600' },
+                  purple: { bg: 'bg-purple-50 group-hover:bg-purple-100', icon: 'text-purple-600' },
+                  indigo: { bg: 'bg-indigo-50 group-hover:bg-indigo-100', icon: 'text-indigo-600' },
+                  pink: { bg: 'bg-pink-50 group-hover:bg-pink-100', icon: 'text-pink-600' },
+                };
+                return colorMap[link.color as keyof typeof colorMap] || colorMap.blue;
+              };
+              const colors = getColorClasses();
+
+              return (
+                <Link key={link.href} href={link.href}>
+                  <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer group">
+                    <div className="flex items-start gap-4">
+                      <div className={`p-3 rounded-lg ${colors.bg} transition-colors`}>
+                        <Icon className={`h-6 w-6 ${colors.icon}`} />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 mb-1">{link.title}</h3>
+                        <p className="text-sm text-gray-600">{link.description}</p>
+                      </div>
+                    </div>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Total Chats */}
@@ -418,43 +455,6 @@ export default function DashboardPage() {
             />
           </div>
         )}
-
-        {/* Quick Links */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {quickLinks.map((link) => {
-              const Icon = link.icon;
-              const getColorClasses = () => {
-                const colorMap = {
-                  blue: { bg: 'bg-blue-50 group-hover:bg-blue-100', icon: 'text-blue-600' },
-                  green: { bg: 'bg-green-50 group-hover:bg-green-100', icon: 'text-green-600' },
-                  purple: { bg: 'bg-purple-50 group-hover:bg-purple-100', icon: 'text-purple-600' },
-                  indigo: { bg: 'bg-indigo-50 group-hover:bg-indigo-100', icon: 'text-indigo-600' },
-                  pink: { bg: 'bg-pink-50 group-hover:bg-pink-100', icon: 'text-pink-600' },
-                };
-                return colorMap[link.color as keyof typeof colorMap] || colorMap.blue;
-              };
-              const colors = getColorClasses();
-
-              return (
-                <Link key={link.href} href={link.href}>
-                  <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer group">
-                    <div className="flex items-start gap-4">
-                      <div className={`p-3 rounded-lg ${colors.bg} transition-colors`}>
-                        <Icon className={`h-6 w-6 ${colors.icon}`} />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 mb-1">{link.title}</h3>
-                        <p className="text-sm text-gray-600">{link.description}</p>
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
 
         {/* Recent Chats */}
         <div className="mb-8">
