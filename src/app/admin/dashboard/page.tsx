@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, FileText, MessageSquare, Upload, Type, Package, TrendingUp, Clock, Users, Database, Eye, X, FileDown } from 'lucide-react';
+import { RefreshCw, FileText, MessageSquare, Upload, Type, Package, TrendingUp, Clock, Users, Database, Eye, X, FileDown, Calendar, Zap, AlertCircle, Download } from 'lucide-react';
 import { AdminNav } from '@/components/admin-nav';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
 import { useRouter } from 'next/navigation';
@@ -11,12 +11,39 @@ import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import UsageChart from '@/components/admin/usage-chart';
+import DayChatsModal from '@/components/admin/day-chats-modal';
+import { format } from 'date-fns';
 
 interface DashboardStats {
-  totalFiles: number;
-  totalChats: number;
-  recentChats: number;
-  lastSync?: string;
+  total: {
+    total: number;
+    last30Days: number;
+    percentChange: number;
+  };
+  today: {
+    today: number;
+    yesterday: number;
+    percentChange: number;
+  };
+  week: {
+    thisWeek: number;
+    lastWeek: number;
+    percentChange: number;
+  };
+  knowledgeBase: {
+    fileCount: number;
+    lastProductSync: string | null;
+    lastBlogSync: string | null;
+    productSyncStatus: 'fresh' | 'warning' | 'stale';
+    blogSyncStatus: 'fresh' | 'warning' | 'stale';
+  };
+  chatsOverTime: Array<{
+    date: string;
+    chats: number;
+    messages: number;
+    users: string[];
+  }>;
 }
 
 interface ChatLog {
@@ -38,12 +65,10 @@ interface ChatMessage {
 export default function DashboardPage() {
   const router = useRouter();
   const { password, isAuthenticated, isChecking, handleLogout } = useAdminAuth();
-  const [stats, setStats] = useState<DashboardStats>({
-    totalFiles: 0,
-    totalChats: 0,
-    recentChats: 0,
-  });
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [chartRange, setChartRange] = useState(30);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [recentChatLogs, setRecentChatLogs] = useState<ChatLog[]>([]);
   const [viewingLog, setViewingLog] = useState<ChatLog | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -57,31 +82,26 @@ export default function DashboardPage() {
     if (isAuthenticated) {
       loadStats();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, chartRange]);
 
   const loadStats = async () => {
     setIsLoading(true);
     try {
-      // Load file count
-      const filesResponse = await fetch('/api/admin/files', {
+      // Load enhanced stats from new API
+      const statsResponse = await fetch(`/api/admin/stats?range=${chartRange}`, {
         headers: { 'Authorization': `Bearer ${password}` }
       });
-      if (filesResponse.ok) {
-        const filesData = await filesResponse.json();
-        setStats(prev => ({ ...prev, totalFiles: filesData.files?.length || 0 }));
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json();
+        setStats(statsData);
       }
 
-      // Load chat logs count and recent chats
+      // Load recent chats for the preview section
       const chatsResponse = await fetch('/api/admin/chat-logs?page=1&limit=5', {
         headers: { 'Authorization': `Bearer ${password}` }
       });
       if (chatsResponse.ok) {
         const chatsData = await chatsResponse.json();
-        setStats(prev => ({
-          ...prev,
-          totalChats: chatsData.total || 0,
-          recentChats: chatsData.logs?.length || 0
-        }));
         setRecentChatLogs(chatsData.logs || []);
       }
     } catch (error) {
@@ -247,24 +267,34 @@ export default function DashboardPage() {
 
   const helpfulTips = [
     {
-      title: 'Regular Maintenance',
-      description: 'Sync your product catalog weekly to keep information current.',
-      icon: Clock
+      title: 'Automated Product Sync',
+      description: 'Products auto-sync every 72 hours at 2 AM. Check Knowledge Base status above for last sync.',
+      icon: RefreshCw
     },
     {
-      title: 'Monitor Conversations',
-      description: 'Check chat logs regularly to identify common questions and improve responses.',
-      icon: Users
+      title: 'Weekly Blog Updates',
+      description: 'Blog posts sync automatically every Monday. Use Content Import for manual syncs anytime.',
+      icon: Calendar
     },
     {
-      title: 'Keep Content Fresh',
-      description: 'Update help center content by re-scraping when you make changes to your website.',
+      title: 'Monitor Chat Trends',
+      description: 'Review the usage chart to identify peak times and popular topics to optimize support.',
       icon: TrendingUp
     },
     {
-      title: 'Backup Your Files',
-      description: 'Remember that Pinecone only stores processed knowledge - keep original files backed up.',
-      icon: Database
+      title: 'Export & Analyze',
+      description: 'Export chat logs to CSV for deeper analysis or backup. Available in Chat Logs section.',
+      icon: Download
+    },
+    {
+      title: 'Quick Content Updates',
+      description: 'Use Quick Text for fast updates without files. Upload File for documents. Both update knowledge instantly.',
+      icon: Zap
+    },
+    {
+      title: 'Keep Knowledge Fresh',
+      description: 'Green status = synced recently. Yellow/Red = stale. Re-sync in Content Import to stay current.',
+      icon: AlertCircle
     },
   ];
 
@@ -280,44 +310,117 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Total Chats */}
           <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Files</p>
-                <p className="text-3xl font-bold text-gray-900">
-                  {isLoading ? '...' : stats.totalFiles}
-                </p>
-              </div>
-              <FileText className="h-12 w-12 text-blue-500 opacity-20" />
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-sm text-gray-600 mb-1">Total Chats</p>
                 <p className="text-3xl font-bold text-gray-900">
-                  {isLoading ? '...' : stats.totalChats}
+                  {isLoading || !stats ? '...' : stats.total.total.toLocaleString()}
                 </p>
               </div>
-              <MessageSquare className="h-12 w-12 text-green-500 opacity-20" />
+              <MessageSquare className="h-12 w-12 text-blue-500 opacity-20" />
             </div>
+            {!isLoading && stats && (
+              <div className={`flex items-center text-sm ${stats.total.percentChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <TrendingUp className={`h-4 w-4 mr-1 ${stats.total.percentChange < 0 ? 'rotate-180' : ''}`} />
+                <span className="font-medium">
+                  {stats.total.percentChange >= 0 ? '+' : ''}{stats.total.percentChange.toFixed(1)}%
+                </span>
+                <span className="text-gray-500 ml-1">vs last 30 days</span>
+              </div>
+            )}
           </Card>
 
+          {/* Chats Today */}
           <Card className="p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Recent Activity</p>
+                <p className="text-sm text-gray-600 mb-1">Chats Today</p>
                 <p className="text-3xl font-bold text-gray-900">
-                  {isLoading ? '...' : stats.recentChats}
+                  {isLoading || !stats ? '...' : stats.today.today}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Last 50 chats</p>
+              </div>
+              <Calendar className="h-12 w-12 text-green-500 opacity-20" />
+            </div>
+            {!isLoading && stats && (
+              <div className={`flex items-center text-sm ${stats.today.percentChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <TrendingUp className={`h-4 w-4 mr-1 ${stats.today.percentChange < 0 ? 'rotate-180' : ''}`} />
+                <span className="font-medium">
+                  {stats.today.percentChange >= 0 ? '+' : ''}{stats.today.percentChange.toFixed(1)}%
+                </span>
+                <span className="text-gray-500 ml-1">vs yesterday</span>
+              </div>
+            )}
+          </Card>
+
+          {/* Chats This Week */}
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Chats This Week</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {isLoading || !stats ? '...' : stats.week.thisWeek}
+                </p>
               </div>
               <TrendingUp className="h-12 w-12 text-purple-500 opacity-20" />
             </div>
+            {!isLoading && stats && (
+              <div className={`flex items-center text-sm ${stats.week.percentChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <TrendingUp className={`h-4 w-4 mr-1 ${stats.week.percentChange < 0 ? 'rotate-180' : ''}`} />
+                <span className="font-medium">
+                  {stats.week.percentChange >= 0 ? '+' : ''}{stats.week.percentChange.toFixed(1)}%
+                </span>
+                <span className="text-gray-500 ml-1">vs last week</span>
+              </div>
+            )}
+          </Card>
+
+          {/* Knowledge Base Status */}
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Knowledge Base</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {isLoading || !stats ? '...' : stats.knowledgeBase.fileCount}
+                </p>
+                <p className="text-xs text-gray-500">files</p>
+              </div>
+              <Database className="h-12 w-12 text-indigo-500 opacity-20" />
+            </div>
+            {!isLoading && stats && (
+              <div className="flex gap-2 text-xs">
+                <div className={`px-2 py-1 rounded-full ${
+                  stats.knowledgeBase.productSyncStatus === 'fresh' ? 'bg-green-100 text-green-700' :
+                  stats.knowledgeBase.productSyncStatus === 'warning' ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-red-100 text-red-700'
+                }`}>
+                  Products
+                </div>
+                <div className={`px-2 py-1 rounded-full ${
+                  stats.knowledgeBase.blogSyncStatus === 'fresh' ? 'bg-green-100 text-green-700' :
+                  stats.knowledgeBase.blogSyncStatus === 'warning' ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-red-100 text-red-700'
+                }`}>
+                  Blog
+                </div>
+              </div>
+            )}
           </Card>
         </div>
+
+        {/* Usage Chart */}
+        {!isLoading && stats && (
+          <div className="mb-8">
+            <UsageChart
+              data={stats.chatsOverTime}
+              range={chartRange}
+              onRangeChange={setChartRange}
+              onBarClick={setSelectedDate}
+            />
+          </div>
+        )}
 
         {/* Quick Links */}
         <div className="mb-8">
@@ -406,7 +509,7 @@ export default function DashboardPage() {
         {/* Helpful Tips */}
         <div>
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Helpful Tips</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {helpfulTips.map((tip, index) => {
               const Icon = tip.icon;
               return (
@@ -580,6 +683,13 @@ export default function DashboardPage() {
           </Card>
         </div>
       )}
+
+      {/* Day Chats Modal */}
+      <DayChatsModal
+        date={selectedDate}
+        onClose={() => setSelectedDate(null)}
+        onViewChat={handleViewLog}
+      />
     </div>
   );
 }
