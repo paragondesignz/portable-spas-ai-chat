@@ -89,7 +89,7 @@ export default function UploadPage() {
 
   if (isChecking) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
       </div>
     );
@@ -97,13 +97,13 @@ export default function UploadPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <Card className="w-full max-w-md p-8">
           <div className="flex flex-col items-center mb-6">
             <Lock className="h-12 w-12 text-gray-400 mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900">Admin Login Required</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Admin Login Required</h1>
           </div>
-          <p className="text-center text-gray-600 mb-4">
+          <p className="text-center text-gray-600 dark:text-gray-400 mb-4">
             Please login from the main admin page
           </p>
           <Button onClick={() => router.push('/admin')} className="w-full">
@@ -115,13 +115,13 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <AdminNav onLogout={handleLogout} />
 
       <div className="max-w-4xl mx-auto p-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Upload File</h1>
-          <p className="text-gray-600">Upload documents to your Pinecone knowledge base</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Upload File</h1>
+          <p className="text-gray-600 dark:text-gray-400">Upload documents to your Pinecone knowledge base</p>
         </div>
 
         {error && (
@@ -132,7 +132,7 @@ export default function UploadPage() {
         )}
 
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
+          <div className="bg-green-50 border border-green-200 text-green-700 dark:text-green-300 px-4 py-3 rounded mb-6">
             {success}
           </div>
         )}
@@ -148,15 +148,15 @@ export default function UploadPage() {
                 type="file"
                 accept=".txt,.pdf,.md,.docx,.json,.csv"
                 onChange={handleFileSelect}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer"
+                className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer"
               />
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                 Supported formats: TXT, PDF, Markdown, DOCX, JSON, CSV
               </p>
             </div>
 
             {selectedFile && (
-              <div className="bg-blue-50 border border-blue-200 rounded p-3">
+              <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 rounded p-3">
                 <p className="text-sm text-blue-900">
                   <strong>Selected:</strong> {selectedFile.name} ({formatBytes(selectedFile.size)})
                 </p>
@@ -184,7 +184,7 @@ export default function UploadPage() {
           </div>
         </Card>
 
-        <Card className="p-4 bg-blue-50 border-blue-200">
+        <Card className="p-4 bg-blue-50 dark:bg-blue-950 border-blue-200">
           <div className="flex gap-3">
             <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-blue-900">

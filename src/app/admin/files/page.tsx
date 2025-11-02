@@ -152,7 +152,7 @@ export default function FilesPage() {
 
   if (isChecking) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
       </div>
     );
@@ -160,13 +160,13 @@ export default function FilesPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <Card className="w-full max-w-md p-8">
           <div className="flex flex-col items-center mb-6">
             <Lock className="h-12 w-12 text-gray-400 mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900">Admin Login Required</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Admin Login Required</h1>
           </div>
-          <p className="text-center text-gray-600 mb-4">
+          <p className="text-center text-gray-600 dark:text-gray-400 mb-4">
             Please login from the main admin page
           </p>
           <Button onClick={() => router.push('/admin')} className="w-full">
@@ -178,13 +178,13 @@ export default function FilesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <AdminNav onLogout={handleLogout} />
 
       <div className="max-w-7xl mx-auto p-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">File Management</h1>
-          <p className="text-gray-600">View and manage files in your Pinecone knowledge base</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">File Management</h1>
+          <p className="text-gray-600 dark:text-gray-400">View and manage files in your Pinecone knowledge base</p>
         </div>
 
         {error && (
@@ -195,12 +195,12 @@ export default function FilesPage() {
         )}
 
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
+          <div className="bg-green-50 border border-green-200 text-green-700 dark:text-green-300 px-4 py-3 rounded mb-6">
             {success}
           </div>
         )}
 
-        <Card className="p-4 mb-6 bg-blue-50 border-blue-200">
+        <Card className="p-4 mb-6 bg-blue-50 dark:bg-blue-950 border-blue-200">
           <div className="flex gap-3">
             <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-blue-900">
@@ -223,7 +223,7 @@ export default function FilesPage() {
 
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <FileText className="h-5 w-5" />
               Uploaded Files ({files.length})
             </h2>
@@ -240,13 +240,13 @@ export default function FilesPage() {
           {isLoading ? (
             <div className="text-center py-12">
               <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-400 mb-2" />
-              <p className="text-gray-600">Loading files...</p>
+              <p className="text-gray-600 dark:text-gray-400">Loading files...</p>
             </div>
           ) : files.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-600">No files uploaded yet</p>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-gray-600 dark:text-gray-400">No files uploaded yet</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Use the Upload page to add files
               </p>
             </div>
@@ -254,11 +254,11 @@ export default function FilesPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200">
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
                     <th className="text-left py-3 px-4">
                       <button
                         onClick={() => handleSort('name')}
-                        className="flex items-center gap-2 font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+                        className="flex items-center gap-2 font-semibold text-gray-700 hover:text-gray-900 dark:text-gray-100 transition-colors"
                       >
                         Name
                         <SortIcon column="name" />
@@ -267,7 +267,7 @@ export default function FilesPage() {
                     <th className="text-left py-3 px-4">
                       <button
                         onClick={() => handleSort('date')}
-                        className="flex items-center gap-2 font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+                        className="flex items-center gap-2 font-semibold text-gray-700 hover:text-gray-900 dark:text-gray-100 transition-colors"
                       >
                         Date Added
                         <SortIcon column="date" />
@@ -287,22 +287,22 @@ export default function FilesPage() {
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                          <span className="font-medium text-gray-900">{file.name}</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">{file.name}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-sm text-gray-600">
+                      <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
                         {formatDate(file.createdOn)}
                       </td>
                       <td className="py-3 px-4">
                         <span className={`text-xs px-2 py-1 rounded ${
                           file.status === 'Available'
-                            ? 'bg-green-100 text-green-700'
+                            ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
                             : 'bg-yellow-100 text-yellow-700'
                         }`}>
                           {file.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-sm text-gray-600">
+                      <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
                         {formatBytes(file.size)}
                       </td>
                       <td className="py-3 px-4">
@@ -311,7 +311,7 @@ export default function FilesPage() {
                             onClick={() => handleViewFile(file)}
                             variant="outline"
                             size="sm"
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            className="text-blue-600 hover:text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:bg-blue-950"
                             title="View file metadata"
                           >
                             <Eye className="h-4 w-4" />
@@ -341,13 +341,13 @@ export default function FilesPage() {
             <Card className="w-full max-w-2xl max-h-[80vh] overflow-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                     <FileText className="h-6 w-6" />
                     File Details
                   </h3>
                   <button
                     onClick={() => setViewingFile(null)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 hover:text-gray-600 dark:text-gray-400"
                   >
                     <X className="h-6 w-6" />
                   </button>
@@ -356,18 +356,18 @@ export default function FilesPage() {
                 <div className="space-y-4">
                   <div className="bg-gray-50 rounded p-4 space-y-3">
                     <div>
-                      <label className="text-sm font-medium text-gray-600">Name</label>
-                      <p className="text-gray-900 font-mono text-sm">{viewingFile.name}</p>
+                      <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Name</label>
+                      <p className="text-gray-900 dark:text-gray-100 font-mono text-sm">{viewingFile.name}</p>
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium text-gray-600">File ID</label>
-                      <p className="text-gray-900 font-mono text-xs break-all">{viewingFile.id}</p>
+                      <label className="text-sm font-medium text-gray-600 dark:text-gray-400">File ID</label>
+                      <p className="text-gray-900 dark:text-gray-100 font-mono text-xs break-all">{viewingFile.id}</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm font-medium text-gray-600">Status</label>
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Status</label>
                         <p className={`text-sm font-medium ${
                           viewingFile.status === 'Available'
                             ? 'text-green-600'
@@ -378,15 +378,15 @@ export default function FilesPage() {
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-gray-600">Size</label>
-                        <p className="text-gray-900 text-sm">{formatBytes(viewingFile.size)}</p>
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Size</label>
+                        <p className="text-gray-900 dark:text-gray-100 text-sm">{formatBytes(viewingFile.size)}</p>
                       </div>
                     </div>
 
                     {viewingFile.createdOn && (
                       <div>
-                        <label className="text-sm font-medium text-gray-600">Created</label>
-                        <p className="text-gray-900 text-sm">
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Created</label>
+                        <p className="text-gray-900 dark:text-gray-100 text-sm">
                           {new Date(viewingFile.createdOn).toLocaleString()}
                         </p>
                       </div>
@@ -394,8 +394,8 @@ export default function FilesPage() {
 
                     {viewingFile.updatedOn && (
                       <div>
-                        <label className="text-sm font-medium text-gray-600">Last Updated</label>
-                        <p className="text-gray-900 text-sm">
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Last Updated</label>
+                        <p className="text-gray-900 dark:text-gray-100 text-sm">
                           {new Date(viewingFile.updatedOn).toLocaleString()}
                         </p>
                       </div>

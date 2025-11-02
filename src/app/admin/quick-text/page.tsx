@@ -83,13 +83,13 @@ export default function QuickTextPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <Card className="w-full max-w-md p-8">
           <div className="flex flex-col items-center mb-6">
             <Lock className="h-12 w-12 text-gray-400 mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900">Admin Login Required</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Admin Login Required</h1>
           </div>
-          <p className="text-center text-gray-600 mb-4">
+          <p className="text-center text-gray-600 dark:text-gray-400 mb-4">
             Please login from the main admin page
           </p>
           <Button onClick={() => router.push('/admin')} className="w-full">
@@ -101,13 +101,13 @@ export default function QuickTextPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <AdminNav onLogout={handleLogout} />
 
       <div className="max-w-4xl mx-auto p-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Quick Text Entry</h1>
-          <p className="text-gray-600">Quickly add information without creating a file first</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Quick Text Entry</h1>
+          <p className="text-gray-600 dark:text-gray-400">Quickly add information without creating a file first</p>
         </div>
 
         {error && (
@@ -118,7 +118,7 @@ export default function QuickTextPage() {
         )}
 
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
+          <div className="bg-green-50 border border-green-200 text-green-700 dark:text-green-300 px-4 py-3 rounded mb-6">
             {success}
           </div>
         )}
@@ -136,7 +136,7 @@ export default function QuickTextPage() {
                 placeholder="e.g., Delivery Information or Holiday Hours"
                 className="w-full"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 This will be used as the heading and filename
               </p>
             </div>
@@ -152,7 +152,7 @@ export default function QuickTextPage() {
                 rows={12}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-y"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 You can use Markdown formatting if you like
               </p>
             </div>
@@ -178,7 +178,7 @@ export default function QuickTextPage() {
           </div>
         </Card>
 
-        <Card className="p-4 bg-blue-50 border-blue-200">
+        <Card className="p-4 bg-blue-50 dark:bg-blue-950 border-blue-200">
           <div className="flex gap-3">
             <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-blue-900">
