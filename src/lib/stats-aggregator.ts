@@ -195,43 +195,52 @@ export async function getKnowledgeBaseStatus(): Promise<{
   }>(cacheKey);
   if (cached) return cached;
 
-  // Get file count
-  const filesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/admin/files`, {
-    headers: {
-      'Authorization': `Bearer ${process.env.ADMIN_PASSWORD}`,
-    },
-  });
-
   let fileCount = 0;
   let lastProductSync: string | null = null;
   let lastBlogSync: string | null = null;
 
-  if (filesResponse.ok) {
-    const filesData = await filesResponse.json();
-    fileCount = filesData.files?.length || 0;
+  try {
+    // Fetch files directly from Pinecone Assistant API
+    const response = await fetch(
+      `https://prod-1-data.ke.pinecone.io/assistant/files/${process.env.PINECONE_ASSISTANT_NAME}`,
+      {
+        headers: {
+          'Api-Key': process.env.PINECONE_API_KEY || '',
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-    // Find most recent product catalog and blog sync files
-    const files = filesData.files || [];
-    const productFiles = files.filter((f: any) => f.name.startsWith('product-catalog-'));
-    const blogFiles = files.filter((f: any) => f.name.match(/^(articles|news)-blog-/));
+    if (response.ok) {
+      const data = await response.json();
+      const files = data.files || [];
+      fileCount = files.length;
 
-    if (productFiles.length > 0) {
-      const mostRecent = productFiles.reduce((latest: any, current: any) => {
-        const latestDate = latest.createdOn ? new Date(latest.createdOn) : new Date(0);
-        const currentDate = current.createdOn ? new Date(current.createdOn) : new Date(0);
-        return currentDate > latestDate ? current : latest;
-      });
-      lastProductSync = mostRecent.createdOn || null;
+      // Find most recent product catalog and blog sync files
+      const productFiles = files.filter((f: any) => f.name.startsWith('product-catalog-'));
+      const blogFiles = files.filter((f: any) => f.name.match(/^(articles|news)-blog-/));
+
+      if (productFiles.length > 0) {
+        const mostRecent = productFiles.reduce((latest: any, current: any) => {
+          const latestDate = latest.created_on ? new Date(latest.created_on) : new Date(0);
+          const currentDate = current.created_on ? new Date(current.created_on) : new Date(0);
+          return currentDate > latestDate ? current : latest;
+        });
+        lastProductSync = mostRecent.created_on || null;
+      }
+
+      if (blogFiles.length > 0) {
+        const mostRecent = blogFiles.reduce((latest: any, current: any) => {
+          const latestDate = latest.created_on ? new Date(latest.created_on) : new Date(0);
+          const currentDate = current.created_on ? new Date(current.created_on) : new Date(0);
+          return currentDate > latestDate ? current : latest;
+        });
+        lastBlogSync = mostRecent.created_on || null;
+      }
     }
-
-    if (blogFiles.length > 0) {
-      const mostRecent = blogFiles.reduce((latest: any, current: any) => {
-        const latestDate = latest.createdOn ? new Date(latest.createdOn) : new Date(0);
-        const currentDate = current.createdOn ? new Date(current.createdOn) : new Date(0);
-        return currentDate > latestDate ? current : latest;
-      });
-      lastBlogSync = mostRecent.createdOn || null;
-    }
+  } catch (error) {
+    console.error('Error fetching knowledge base status:', error);
+    // Return default values on error
   }
 
   // Determine sync status based on age
