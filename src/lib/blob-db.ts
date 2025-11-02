@@ -404,17 +404,44 @@ export async function updateContactInfo(
     // Fetch existing log
     const { blobs } = await list({ prefix: key });
 
+    let log: ChatLog;
+    let shouldDelete = false;
+
     if (blobs.length === 0) {
-      console.error('Chat log not found for session:', sessionId);
-      return null;
-    }
+      // Create new chat log if it doesn't exist
+      console.log('[BLOB-DB] Chat log not found for callback, creating new one for session:', sessionId);
 
-    const response = await fetch(blobs[0].url);
-    if (!response.ok) {
-      throw new Error('Failed to fetch chat log');
-    }
+      // Try to derive a name from email if provided
+      let userName = 'Callback Request';
+      if (contactData.email) {
+        // Extract name from email (part before @)
+        const emailName = contactData.email.split('@')[0];
+        // Capitalize first letter and replace dots/underscores with spaces
+        userName = emailName
+          .replace(/[._]/g, ' ')
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+      }
 
-    const log: ChatLog = await response.json();
+      log = {
+        id: generateId(),
+        session_id: sessionId,
+        user_name: userName,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        messages: []
+      };
+    } else {
+      // Fetch existing log
+      const response = await fetch(blobs[0].url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch chat log');
+      }
+
+      log = await response.json();
+      shouldDelete = true;
+    }
 
     // Update contact fields
     log.contact_email = contactData.email;
@@ -425,8 +452,10 @@ export async function updateContactInfo(
     log.contacted = false;
     log.updated_at = new Date().toISOString();
 
-    // Delete old blob
-    await del(blobs[0].url);
+    // Delete old blob if it exists
+    if (shouldDelete) {
+      await del(blobs[0].url);
+    }
 
     // Create new blob with updated content
     await put(key, JSON.stringify(log), {
