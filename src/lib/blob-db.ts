@@ -7,6 +7,13 @@ export interface ChatLog {
   created_at: string;
   updated_at: string;
   messages: ChatMessage[];
+  // Contact/Callback fields
+  contact_email?: string;
+  contact_phone?: string;
+  callback_requested?: boolean;
+  callback_requested_at?: string;
+  callback_notes?: string;
+  contacted?: boolean;
 }
 
 export interface ChatMessage {
@@ -378,4 +385,58 @@ export async function searchChatLogs(
     logs: paginatedLogs,
     total: matchingLogs.length
   };
+}
+
+/**
+ * Update contact information for a chat log
+ */
+export async function updateContactInfo(
+  sessionId: string,
+  contactData: {
+    email?: string;
+    phone?: string;
+    notes?: string;
+  }
+): Promise<ChatLog | null> {
+  const key = getChatLogKey(sessionId);
+
+  try {
+    // Fetch existing log
+    const { blobs } = await list({ prefix: key });
+
+    if (blobs.length === 0) {
+      console.error('Chat log not found for session:', sessionId);
+      return null;
+    }
+
+    const response = await fetch(blobs[0].url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch chat log');
+    }
+
+    const log: ChatLog = await response.json();
+
+    // Update contact fields
+    log.contact_email = contactData.email;
+    log.contact_phone = contactData.phone;
+    log.callback_requested = true;
+    log.callback_requested_at = new Date().toISOString();
+    log.callback_notes = contactData.notes;
+    log.contacted = false;
+    log.updated_at = new Date().toISOString();
+
+    // Delete old blob
+    await del(blobs[0].url);
+
+    // Create new blob with updated content
+    await put(key, JSON.stringify(log), {
+      access: 'public',
+      addRandomSuffix: false,
+    });
+
+    return log;
+  } catch (error) {
+    console.error('Error updating contact info:', error);
+    return null;
+  }
 }

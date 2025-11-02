@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, ChevronDown, ChevronUp, Mail, Phone, Clock, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface Message {
@@ -29,6 +29,14 @@ export default function ChatInterface() {
   const [userName, setUserName] = useState<string>('');
   const [nameInput, setNameInput] = useState('');
   const [sessionId, setSessionId] = useState<string>('');
+
+  // Contact form state
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactNotes, setContactNotes] = useState('');
+  const [isSubmittingContact, setIsSubmittingContact] = useState(false);
+  const [contactSubmitted, setContactSubmitted] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -176,6 +184,53 @@ export default function ChatInterface() {
     if (confirm('Are you sure you want to clear your chat history?')) {
       localStorage.removeItem(STORAGE_KEY_MESSAGES);
       setMessages([]);
+    }
+  };
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validation
+    if (!contactEmail && !contactPhone) {
+      alert('Please provide at least an email or phone number');
+      return;
+    }
+
+    setIsSubmittingContact(true);
+
+    try {
+      const response = await fetch('/api/contact/request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+          email: contactEmail || undefined,
+          phone: contactPhone || undefined,
+          notes: contactNotes || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit contact request');
+      }
+
+      // Success
+      setContactSubmitted(true);
+      setShowContactForm(false);
+
+      // Reset form after a delay
+      setTimeout(() => {
+        setContactEmail('');
+        setContactPhone('');
+        setContactNotes('');
+      }, 1000);
+    } catch (error) {
+      console.error('Error submitting contact request:', error);
+      alert('Failed to submit callback request. Please try again.');
+    } finally {
+      setIsSubmittingContact(false);
     }
   };
 
@@ -469,6 +524,129 @@ export default function ChatInterface() {
             AI can make mistakes. Check important info.
           </p>
         </form>
+
+        {/* Contact/Callback Form */}
+        <div className="max-w-3xl mx-auto px-4 pb-4">
+          {!contactSubmitted ? (
+            <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+              <button
+                onClick={() => setShowContactForm(!showContactForm)}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex items-center gap-2 text-sm text-gray-700">
+                  <Phone className="h-4 w-4" />
+                  <span className="font-medium">Need to speak with someone? Request a callback</span>
+                </div>
+                {showContactForm ? (
+                  <ChevronUp className="h-4 w-4 text-gray-500" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                )}
+              </button>
+
+              {showContactForm && (
+                <form onSubmit={handleContactSubmit} className="px-4 pb-4 pt-2 bg-white">
+                  <div className="space-y-3">
+                    {/* Business hours info */}
+                    <div className="flex items-start gap-2 text-xs text-gray-600 bg-blue-50 p-2 rounded">
+                      <Clock className="h-3 w-3 mt-0.5 flex-shrink-0 text-blue-600" />
+                      <div>
+                        <p className="font-medium text-blue-900">Business Hours: Monday, Wednesday, Friday: 10am - 4pm NZST</p>
+                        <p className="mt-1">We typically respond within 1-2 hours during business hours</p>
+                      </div>
+                    </div>
+
+                    {/* Email field */}
+                    <div>
+                      <label htmlFor="contact-email" className="block text-sm font-medium text-gray-700 mb-1">
+                        <div className="flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          Email {!contactPhone && <span className="text-red-500">*</span>}
+                        </div>
+                      </label>
+                      <Input
+                        id="contact-email"
+                        type="email"
+                        value={contactEmail}
+                        onChange={(e) => setContactEmail(e.target.value)}
+                        placeholder="your.email@example.com"
+                        className="text-sm"
+                        disabled={isSubmittingContact}
+                      />
+                    </div>
+
+                    {/* Phone field */}
+                    <div>
+                      <label htmlFor="contact-phone" className="block text-sm font-medium text-gray-700 mb-1">
+                        <div className="flex items-center gap-1">
+                          <Phone className="h-3 w-3" />
+                          Phone {!contactEmail && <span className="text-red-500">*</span>}
+                        </div>
+                      </label>
+                      <Input
+                        id="contact-phone"
+                        type="tel"
+                        value={contactPhone}
+                        onChange={(e) => setContactPhone(e.target.value)}
+                        placeholder="021 123 4567"
+                        className="text-sm"
+                        disabled={isSubmittingContact}
+                      />
+                    </div>
+
+                    {/* Notes field */}
+                    <div>
+                      <label htmlFor="contact-notes" className="block text-sm font-medium text-gray-700 mb-1">
+                        Best time to call (optional)
+                      </label>
+                      <Input
+                        id="contact-notes"
+                        type="text"
+                        value={contactNotes}
+                        onChange={(e) => setContactNotes(e.target.value)}
+                        placeholder="e.g., Afternoons, after 2pm"
+                        className="text-sm"
+                        disabled={isSubmittingContact}
+                      />
+                    </div>
+
+                    <p className="text-xs text-gray-500">
+                      * At least one contact method (email or phone) is required
+                    </p>
+
+                    {/* Submit button */}
+                    <Button
+                      type="submit"
+                      disabled={isSubmittingContact || (!contactEmail && !contactPhone)}
+                      className="w-full"
+                    >
+                      {isSubmittingContact ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        'Request Callback'
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </div>
+          ) : (
+            <div className="border border-green-200 rounded-lg bg-green-50 px-4 py-3 flex items-center gap-2">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                <Check className="h-5 w-5 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-green-900">Callback request received!</p>
+                <p className="text-xs text-green-700 mt-0.5">
+                  We'll contact you within 1-2 hours during business hours
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

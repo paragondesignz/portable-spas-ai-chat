@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { MessageSquare, Trash2, RefreshCw, Lock, Search, Eye, X, ChevronLeft, ChevronRight, Download, FileDown } from 'lucide-react';
+import { MessageSquare, Trash2, RefreshCw, Lock, Search, Eye, X, ChevronLeft, ChevronRight, Download, FileDown, Phone, Mail, Clock, Filter } from 'lucide-react';
 import { AdminNav } from '@/components/admin-nav';
 import ReactMarkdown from 'react-markdown';
 import jsPDF from 'jspdf';
@@ -17,6 +17,12 @@ interface ChatLog {
   user_name: string;
   created_at: string;
   updated_at: string;
+  contact_email?: string;
+  contact_phone?: string;
+  callback_requested?: boolean;
+  callback_requested_at?: string;
+  callback_notes?: string;
+  contacted?: boolean;
 }
 
 interface ChatMessage {
@@ -45,6 +51,7 @@ export default function ChatLogsPage() {
   const [selectedLogs, setSelectedLogs] = useState<Set<string>>(new Set());
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const chatContentRef = useRef<HTMLDivElement>(null);
+  const [showCallbacksOnly, setShowCallbacksOnly] = useState(false);
 
   // Check if already authenticated
   useEffect(() => {
@@ -462,10 +469,23 @@ export default function ChatLogsPage() {
         {/* Logs List */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              Chat Logs ({total})
-            </h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                Chat Logs ({total})
+              </h2>
+              <button
+                onClick={() => setShowCallbacksOnly(!showCallbacksOnly)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  showCallbacksOnly
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Phone className="h-3 w-3 inline mr-1" />
+                {showCallbacksOnly ? 'Showing Callbacks Only' : 'Show Callbacks Only'}
+              </button>
+            </div>
             {total > 0 && (
               <Button
                 onClick={handleExportAll}
@@ -508,16 +528,19 @@ export default function ChatLogsPage() {
                         />
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">User Name</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Contact Info</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Started</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Last Updated</th>
                       <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {logs.map((log) => (
+                    {logs.filter(log => !showCallbacksOnly || log.callback_requested).map((log) => (
                       <tr
                         key={log.id}
-                        className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                        className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                          log.callback_requested && !log.contacted ? 'bg-blue-50' : ''
+                        }`}
                       >
                         <td className="py-3 px-4">
                           <input
@@ -531,7 +554,33 @@ export default function ChatLogsPage() {
                           <div className="flex items-center gap-2">
                             <MessageSquare className="h-4 w-4 text-gray-400 flex-shrink-0" />
                             <span className="font-medium text-gray-900">{log.user_name}</span>
+                            {log.callback_requested && !log.contacted && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-600 text-white">
+                                <Phone className="h-3 w-3 mr-1" />
+                                Callback
+                              </span>
+                            )}
                           </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm">
+                          {log.callback_requested ? (
+                            <div className="flex flex-col gap-1">
+                              {log.contact_email && (
+                                <a href={`mailto:${log.contact_email}`} className="flex items-center gap-1 text-blue-600 hover:text-blue-700">
+                                  <Mail className="h-3 w-3" />
+                                  <span className="text-xs">{log.contact_email}</span>
+                                </a>
+                              )}
+                              {log.contact_phone && (
+                                <a href={`tel:${log.contact_phone}`} className="flex items-center gap-1 text-blue-600 hover:text-blue-700">
+                                  <Phone className="h-3 w-3" />
+                                  <span className="text-xs">{log.contact_phone}</span>
+                                </a>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 text-xs">—</span>
+                          )}
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-600">
                           {formatDate(log.created_at)}
@@ -605,6 +654,43 @@ export default function ChatLogsPage() {
                       <p className="text-sm text-gray-600 mt-1">
                         Session started: {formatDate(viewingLog.created_at)}
                       </p>
+                      {viewingLog.callback_requested && (
+                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Phone className="h-4 w-4 text-blue-600" />
+                            <span className="text-sm font-semibold text-blue-900">Callback Requested</span>
+                            {viewingLog.callback_requested_at && (
+                              <span className="text-xs text-blue-600">
+                                {formatDate(viewingLog.callback_requested_at)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="space-y-1 text-sm">
+                            {viewingLog.contact_email && (
+                              <div className="flex items-center gap-2">
+                                <Mail className="h-3 w-3 text-blue-600" />
+                                <a href={`mailto:${viewingLog.contact_email}`} className="text-blue-600 hover:text-blue-700 hover:underline">
+                                  {viewingLog.contact_email}
+                                </a>
+                              </div>
+                            )}
+                            {viewingLog.contact_phone && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-3 w-3 text-blue-600" />
+                                <a href={`tel:${viewingLog.contact_phone}`} className="text-blue-600 hover:text-blue-700 hover:underline">
+                                  {viewingLog.contact_phone}
+                                </a>
+                              </div>
+                            )}
+                            {viewingLog.callback_notes && (
+                              <div className="flex items-start gap-2">
+                                <Clock className="h-3 w-3 text-blue-600 mt-0.5" />
+                                <span className="text-blue-700">Best time: {viewingLog.callback_notes}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 print:hidden">
                       <Button
