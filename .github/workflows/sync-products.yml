@@ -1,9 +1,9 @@
-name: Sync Product Catalog Daily
+name: Sync Product Catalog Every 3 Days
 
 on:
   schedule:
-    # Run at 2 AM NZ time (1 PM UTC previous day) every day
-    - cron: '0 13 * * *'
+    # Run at 2 AM NZ time (1 PM UTC previous day) every 3 days
+    - cron: '0 13 */3 * *'
   workflow_dispatch: # Allow manual triggering
 
 jobs:
