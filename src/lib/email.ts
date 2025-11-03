@@ -24,12 +24,13 @@ export interface CallbackRequestData {
 
 /**
  * Send email notification when customer requests callback
+ * Uses ai.portablespas.co.nz subdomain (safe, isolated from main domain email)
  */
 export async function sendCallbackNotification(data: CallbackRequestData) {
   try {
-    const emailAddress = (process.env.FROM_EMAIL || 'noreply@portablespas.co.nz').trim();
+    const emailAddress = (process.env.FROM_EMAIL || 'noreply@ai.portablespas.co.nz').trim();
     const fromEmail = `Portable Spas NZ AI Assistant <${emailAddress}>`;
-    const toEmail = (process.env.NOTIFICATION_EMAIL || 'sales@portablespas.co.nz').trim();
+    const toEmail = (process.env.NOTIFICATION_EMAIL || 'mark@paragondesign.co.nz').trim();
 
     // Format recent conversation
     const conversationHtml = data.recentMessages
@@ -105,7 +106,7 @@ export async function sendCallbackNotification(data: CallbackRequestData) {
                 <strong>⏰ Response Target:</strong> Contact within 1-2 hours during business hours
               </p>
               <p style="margin: 10px 0 0 0; font-size: 14px; color: #64748b;">
-                Business Hours: ${(process.env.BUSINESS_HOURS_TEXT || 'Monday, Wednesday, Friday: 10am - 4pm NZST').trim()}
+                Business Hours: ${(process.env.BUSINESS_HOURS_TEXT || 'Monday, Tuesday, Wednesday, Friday: 10am - 4pm NZST').trim()}
               </p>
             </div>
 
@@ -146,10 +147,11 @@ export async function sendCallbackNotification(data: CallbackRequestData) {
 
 /**
  * Send confirmation email to customer
+ * Uses ai.portablespas.co.nz subdomain (safe, isolated from main domain email)
  */
 export async function sendCustomerConfirmation(email: string, userName: string) {
   try {
-    const emailAddress = (process.env.FROM_EMAIL || 'noreply@portablespas.co.nz').trim();
+    const emailAddress = (process.env.FROM_EMAIL || 'noreply@ai.portablespas.co.nz').trim();
     const fromEmail = `Portable Spas NZ <${emailAddress}>`;
 
     const html = `
@@ -181,7 +183,7 @@ export async function sendCustomerConfirmation(email: string, userName: string) 
             <div style="padding: 15px; background-color: white; border: 1px solid #e5e7eb; border-radius: 6px; margin: 20px 0;">
               <p style="margin: 0; font-weight: bold; color: #1f2937;">Our Business Hours:</p>
               <p style="margin: 5px 0 0 0; color: #4b5563;">
-                ${(process.env.BUSINESS_HOURS_TEXT || 'Monday, Wednesday, Friday: 10am - 4pm NZST').trim()}
+                ${(process.env.BUSINESS_HOURS_TEXT || 'Monday, Tuesday, Wednesday, Friday: 10am - 4pm NZST').trim()}
               </p>
             </div>
 
