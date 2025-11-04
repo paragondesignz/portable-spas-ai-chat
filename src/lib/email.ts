@@ -106,7 +106,7 @@ export async function sendCallbackNotification(data: CallbackRequestData) {
                 <strong>⏰ Response Target:</strong> Contact within 1-2 hours during business hours
               </p>
               <p style="margin: 10px 0 0 0; font-size: 14px; color: #64748b;">
-                Business Hours: ${(process.env.BUSINESS_HOURS_TEXT || 'Monday, Tuesday, Wednesday, Friday: 10am - 4pm NZST').trim()}
+                Business Hours: ${(process.env.BUSINESS_HOURS_TEXT || 'Monday-Friday: 10am-4pm, Saturday & Sunday: Closed').trim()}
               </p>
             </div>
 
@@ -183,7 +183,7 @@ export async function sendCustomerConfirmation(email: string, userName: string) 
             <div style="padding: 15px; background-color: white; border: 1px solid #e5e7eb; border-radius: 6px; margin: 20px 0;">
               <p style="margin: 0; font-weight: bold; color: #1f2937;">Our Business Hours:</p>
               <p style="margin: 5px 0 0 0; color: #4b5563;">
-                ${(process.env.BUSINESS_HOURS_TEXT || 'Monday, Tuesday, Wednesday, Friday: 10am - 4pm NZST').trim()}
+                ${(process.env.BUSINESS_HOURS_TEXT || 'Monday-Friday: 10am-4pm, Saturday & Sunday: Closed').trim()}
               </p>
             </div>
 

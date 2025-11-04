@@ -551,7 +551,7 @@ export default function ChatInterface() {
                     <div className="flex items-start gap-2 text-xs text-gray-600 bg-blue-50 p-2 rounded">
                       <Clock className="h-3 w-3 mt-0.5 flex-shrink-0 text-blue-600" />
                       <div>
-                        <p className="font-medium text-blue-900">Business Hours: Monday, Wednesday, Friday: 10am - 4pm NZST</p>
+                        <p className="font-medium text-blue-900">Business Hours: Monday-Friday: 10am-4pm, Saturday & Sunday: Closed</p>
                         <p className="mt-1">We typically respond within 1-2 hours during business hours</p>
                       </div>
                     </div>
