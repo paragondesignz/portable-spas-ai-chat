@@ -146,6 +146,91 @@ export async function sendCallbackNotification(data: CallbackRequestData) {
 }
 
 /**
+ * Send notification when AI assistant is used
+ */
+export async function sendAIUsageNotification(
+  userName: string | undefined,
+  userMessage: string,
+  sessionId?: string
+) {
+  try {
+    const emailAddress = (process.env.FROM_EMAIL || 'noreply@ai.portablespas.co.nz').trim();
+    const fromEmail = `Portable Spas NZ AI Assistant <${emailAddress}>`;
+    const toEmail = 'mark@paragondesign.co.nz';
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background-color: #8b5cf6; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
+            <h1 style="margin: 0; font-size: 24px;">🤖 AI Assistant Used</h1>
+          </div>
+
+          <div style="background-color: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+            <table style="width: 100%; margin-bottom: 20px;">
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #4b5563;">Customer Name:</td>
+                <td style="padding: 8px 0;">${userName || 'Anonymous'}</td>
+              </tr>
+              ${sessionId ? `
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #4b5563;">Session ID:</td>
+                <td style="padding: 8px 0; font-family: monospace; font-size: 12px;">${sessionId}</td>
+              </tr>
+              ` : ''}
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #4b5563;">Timestamp:</td>
+                <td style="padding: 8px 0;">${new Date().toLocaleString('en-NZ', { timeZone: 'Pacific/Auckland' })}</td>
+              </tr>
+            </table>
+
+            <h2 style="color: #1f2937; font-size: 18px; margin-bottom: 10px;">Customer Question</h2>
+            <div style="background-color: white; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <p style="margin: 0; color: #374151;">${userMessage}</p>
+            </div>
+
+            ${sessionId ? `
+            <div style="margin-top: 20px; text-align: center;">
+              <a href="https://portable-spas-ai-chat.vercel.app/admin/chats"
+                 style="display: inline-block; background-color: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                View in Admin Dashboard
+              </a>
+            </div>
+            ` : ''}
+          </div>
+
+          <div style="margin-top: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
+            <p>This notification was sent from your Portable Spas AI Assistant</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const { data: emailData, error } = await getResend().emails.send({
+      from: fromEmail,
+      to: toEmail,
+      subject: `🤖 AI Assistant Used${userName ? ` - ${userName}` : ''}`,
+      html,
+    });
+
+    if (error) {
+      console.error('Error sending AI usage notification:', error);
+      return { success: false, error };
+    }
+
+    console.log('AI usage notification sent successfully:', emailData);
+    return { success: true, data: emailData };
+  } catch (error) {
+    console.error('Error in sendAIUsageNotification:', error);
+    return { success: false, error };
+  }
+}
+
+/**
  * Send confirmation email to customer
  * Uses ai.portablespas.co.nz subdomain (safe, isolated from main domain email)
  */

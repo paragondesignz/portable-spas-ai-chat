@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { addChatMessages } from '@/lib/blob-db';
+import { sendAIUsageNotification } from '@/lib/email';
 
 export const runtime = 'nodejs';
 
@@ -215,6 +216,15 @@ Provide helpful, friendly, and accurate information about MSpa products, accesso
         console.error('[CHAT LOG ERROR] Error details:', dbError.message);
         console.error('[CHAT LOG ERROR] Stack:', dbError.stack);
       }
+    }
+
+    // Send email notification for AI usage (fire-and-forget)
+    const lastUserMessage = messages[messages.length - 1];
+    if (lastUserMessage?.role === 'user') {
+      sendAIUsageNotification(userName, lastUserMessage.content, sessionId)
+        .catch(error => {
+          console.error('[EMAIL NOTIFICATION ERROR] Failed to send AI usage notification:', error);
+        });
     }
 
     return NextResponse.json({
