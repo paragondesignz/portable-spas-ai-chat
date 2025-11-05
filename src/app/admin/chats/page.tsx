@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { AdminNav } from '@/components/admin-nav';
 import ReactMarkdown from 'react-markdown';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useAdminAuth } from '@/hooks/use-admin-auth';
 
 interface ChatLog {
   id: string;
@@ -35,8 +36,7 @@ interface ChatMessage {
 
 export default function ChatLogsPage() {
   const router = useRouter();
-  const [password, setPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated, isChecking, handleLogout, refreshSession } = useAdminAuth();
   const [logs, setLogs] = useState<ChatLog[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -53,25 +53,7 @@ export default function ChatLogsPage() {
   const chatContentRef = useRef<HTMLDivElement>(null);
   const [showCallbacksOnly, setShowCallbacksOnly] = useState(false);
 
-  // Check if already authenticated
-  useEffect(() => {
-    const savedPassword = localStorage.getItem('admin_password');
-    if (savedPassword) {
-      setPassword(savedPassword);
-      setIsAuthenticated(true);
-      loadLogs(savedPassword);
-    }
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('admin_password');
-    setPassword('');
-    setIsAuthenticated(false);
-    setLogs([]);
-    router.push('/admin');
-  };
-
-  const loadLogs = async (pwd: string = password, page: number = 1, query: string = '') => {
+  const loadLogs = useCallback(async (page: number = 1, query: string = '') => {
     setIsLoading(true);
     setError('');
 
@@ -86,15 +68,15 @@ export default function ChatLogsPage() {
       }
 
       const response = await fetch(`/api/admin/chat-logs?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${pwd}`
-        }
+        credentials: 'include'
       });
 
+      if (response.status === 401) {
+        await refreshSession();
+        throw new Error('Unauthorized');
+      }
+
       if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Unauthorized');
-        }
         throw new Error('Failed to load chat logs');
       }
 
@@ -109,11 +91,19 @@ export default function ChatLogsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [refreshSession]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadLogs(1, '');
+    } else {
+      setLogs([]);
+    }
+  }, [isAuthenticated, loadLogs]);
 
   const handleSearch = () => {
     setSelectedLogs(new Set());
-    loadLogs(password, 1, searchQuery);
+    loadLogs(1, searchQuery);
   };
 
   const handleViewLog = async (log: ChatLog) => {
@@ -123,10 +113,13 @@ export default function ChatLogsPage() {
 
     try {
       const response = await fetch(`/api/admin/chat-logs/${log.id}`, {
-        headers: {
-          'Authorization': `Bearer ${password}`
-        }
+        credentials: 'include'
       });
+
+      if (response.status === 401) {
+        await refreshSession();
+        throw new Error('Unauthorized');
+      }
 
       if (!response.ok) {
         throw new Error('Failed to load chat messages');
@@ -158,11 +151,16 @@ export default function ChatLogsPage() {
       const response = await fetch('/api/admin/chat-logs', {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${password}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ ids: Array.from(selectedLogs) })
       });
+
+      if (response.status === 401) {
+        await refreshSession();
+        throw new Error('Unauthorized');
+      }
 
       if (!response.ok) {
         throw new Error('Delete failed');
@@ -190,11 +188,16 @@ export default function ChatLogsPage() {
       const response = await fetch('/api/admin/chat-logs/export', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${password}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ ids: Array.from(selectedLogs) })
       });
+
+      if (response.status === 401) {
+        await refreshSession();
+        throw new Error('Unauthorized');
+      }
 
       if (!response.ok) {
         throw new Error('Export failed');
@@ -234,10 +237,13 @@ export default function ChatLogsPage() {
     try {
       // Get all log IDs (not just current page)
       const allLogsResponse = await fetch(`/api/admin/chat-logs?page=1&limit=${total}`, {
-        headers: {
-          'Authorization': `Bearer ${password}`
-        }
+        credentials: 'include'
       });
+
+      if (allLogsResponse.status === 401) {
+        await refreshSession();
+        throw new Error('Unauthorized');
+      }
 
       if (!allLogsResponse.ok) {
         throw new Error('Failed to fetch all logs');
@@ -249,11 +255,16 @@ export default function ChatLogsPage() {
       const response = await fetch('/api/admin/chat-logs/export', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${password}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ ids: allIds })
       });
+
+      if (response.status === 401) {
+        await refreshSession();
+        throw new Error('Unauthorized');
+      }
 
       if (!response.ok) {
         throw new Error('Export failed');
@@ -371,6 +382,14 @@ export default function ChatLogsPage() {
       setIsGeneratingPdf(false);
     }
   };
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -615,7 +634,7 @@ export default function ChatLogsPage() {
                   </p>
                   <div className="flex gap-2">
                     <Button
-                      onClick={() => loadLogs(password, currentPage - 1, searchQuery)}
+                      onClick={() => loadLogs(currentPage - 1, searchQuery)}
                       disabled={currentPage === 1 || isLoading}
                       variant="outline"
                       size="sm"
@@ -624,7 +643,7 @@ export default function ChatLogsPage() {
                       Previous
                     </Button>
                     <Button
-                      onClick={() => loadLogs(password, currentPage + 1, searchQuery)}
+                      onClick={() => loadLogs(currentPage + 1, searchQuery)}
                       disabled={currentPage === totalPages || isLoading}
                       variant="outline"
                       size="sm"

@@ -58,6 +58,7 @@ Edit `.env.local` and add your credentials:
 PINECONE_API_KEY=your_pinecone_api_key_here
 PINECONE_ASSISTANT_NAME=portable-spas
 ADMIN_PASSWORD=your-secure-admin-password
+ADMIN_SESSION_SECRET=generate-a-long-random-string
 ```
 
 4. Run the development server:
@@ -176,7 +177,7 @@ Access the web-based admin interface to manage your Pinecone knowledge base file
 - **Secure**: Password-protected access
 
 ### Setup:
-1. Set `ADMIN_PASSWORD` in your `.env.local` or Vercel environment variables
+1. Set `ADMIN_PASSWORD` **and** `ADMIN_SESSION_SECRET` in your `.env.local` or Vercel environment variables
 2. Navigate to `/admin`
 3. Login with your password
 4. Manage your knowledge base files

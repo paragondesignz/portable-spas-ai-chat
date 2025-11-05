@@ -39,14 +39,19 @@ Go to your Vercel project:
    - **Name**: `ADMIN_PASSWORD`
    - **Value**: Your secure password (e.g., `MySecurePass123!`)
    - **Environment**: Production, Preview, Development
-3. Click **Save**
-4. **Redeploy** your app
+3. Add a second variable:
+   - **Name**: `ADMIN_SESSION_SECRET`
+   - **Value**: A long, random string (at least 32 characters)
+   - **Environment**: Production, Preview, Development
+4. Click **Save**
+5. **Redeploy** your app
 
 ### 2. Or Set Locally
 
 Add to `.env.local`:
 ```env
 ADMIN_PASSWORD=your-secure-password-here
+ADMIN_SESSION_SECRET=replace-with-64-character-random-string
 ```
 
 ---
@@ -58,7 +63,7 @@ ADMIN_PASSWORD=your-secure-password-here
 1. Navigate to `/admin`
 2. Enter your admin password
 3. Click **Login**
-4. Password is saved in browser (localStorage)
+4. A secure session cookie is issued (no password stored in the browser)
 
 ### Upload a File
 

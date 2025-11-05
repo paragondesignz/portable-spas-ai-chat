@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { authorizeAdminRequest } from '@/lib/admin-auth';
 
 export const runtime = 'nodejs';
 
@@ -58,24 +59,22 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-// Simple password check
-function checkAuth(request: NextRequest): boolean {
-  const authHeader = request.headers.get('authorization');
-  const adminPassword = process.env.ADMIN_PASSWORD || 'change-me-in-production';
-  
-  if (!authHeader) return false;
-  
-  const password = authHeader.replace('Bearer ', '');
-  return password === adminPassword;
-}
-
 export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders });
 }
 
 export async function POST(req: NextRequest) {
   try {
-    if (!checkAuth(req)) {
+    const authStatus = authorizeAdminRequest(req);
+
+    if (authStatus === 'misconfigured') {
+      return NextResponse.json(
+        { error: 'Server configuration error. ADMIN_PASSWORD and ADMIN_SESSION_SECRET must be set.' },
+        { status: 500, headers: corsHeaders }
+      );
+    }
+
+    if (authStatus !== 'authorized') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401, headers: corsHeaders }

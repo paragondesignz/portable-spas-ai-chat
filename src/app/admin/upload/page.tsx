@@ -11,7 +11,7 @@ import { useAdminAuth } from '@/hooks/use-admin-auth';
 
 export default function UploadPage() {
   const router = useRouter();
-  const { password, isAuthenticated, isChecking, handleLogout } = useAdminAuth();
+  const { isAuthenticated, isChecking, handleLogout, refreshSession } = useAdminAuth();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
@@ -54,11 +54,14 @@ export default function UploadPage() {
 
       const response = await fetch('/api/admin/upload', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${password}`
-        },
+        credentials: 'include',
         body: formData
       });
+
+      if (response.status === 401) {
+        await refreshSession();
+        throw new Error('Unauthorized');
+      }
 
       if (!response.ok) {
         const data = await response.json();

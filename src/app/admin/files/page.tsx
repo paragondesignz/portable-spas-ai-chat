@@ -19,7 +19,7 @@ interface FileInfo {
 
 export default function FilesPage() {
   const router = useRouter();
-  const { password, isAuthenticated, isChecking, handleLogout } = useAdminAuth();
+  const { isAuthenticated, isChecking, handleLogout, refreshSession } = useAdminAuth();
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -40,13 +40,12 @@ export default function FilesPage() {
 
     try {
       const response = await fetch('/api/admin/files', {
-        headers: {
-          'Authorization': `Bearer ${password}`
-        }
+        credentials: 'include',
       });
 
       if (!response.ok) {
         if (response.status === 401) {
+          await refreshSession();
           throw new Error('Unauthorized');
         }
         throw new Error('Failed to load files');
@@ -73,9 +72,9 @@ export default function FilesPage() {
       const response = await fetch('/api/admin/files', {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${password}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ fileId })
       });
 
@@ -93,9 +92,7 @@ export default function FilesPage() {
   const handleViewFile = async (file: FileInfo) => {
     try {
       const response = await fetch(`/api/admin/files/${file.id}`, {
-        headers: {
-          'Authorization': `Bearer ${password}`
-        }
+        credentials: 'include',
       });
 
       if (!response.ok) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getNZDateString } from '@/lib/timezone';
+import { authorizeAdminRequest } from '@/lib/admin-auth';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes for processing
@@ -215,20 +216,27 @@ export async function POST(req: NextRequest) {
     // Verify admin password or Vercel Cron
     const authHeader = req.headers.get('authorization');
     const vercelCronHeader = req.headers.get('x-vercel-cron');
-    const adminPassword = process.env.ADMIN_PASSWORD;
 
     // Check if request is from Vercel Cron
     const isFromCron = vercelCronHeader === '1';
 
     // Check if request is from admin with password
-    const providedPassword = authHeader?.replace('Bearer ', '');
-    const isFromAdmin = providedPassword && adminPassword && providedPassword === adminPassword;
+    if (!isFromCron) {
+      const authStatus = authorizeAdminRequest(req);
 
-    if (!isFromCron && !isFromAdmin) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      if (authStatus === 'misconfigured') {
+        return NextResponse.json(
+          { error: 'Server configuration error. ADMIN_PASSWORD and ADMIN_SESSION_SECRET must be set.' },
+          { status: 500 }
+        );
+      }
+
+      if (authStatus !== 'authorized') {
+        return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401 }
+        );
+      }
     }
 
     const apiKey = process.env.PINECONE_API_KEY;

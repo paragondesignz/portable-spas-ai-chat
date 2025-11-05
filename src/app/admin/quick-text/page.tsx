@@ -1,37 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Upload, RefreshCw, AlertCircle, Lock, Info } from 'lucide-react';
 import { AdminNav } from '@/components/admin-nav';
+import { useAdminAuth } from '@/hooks/use-admin-auth';
 
 export default function QuickTextPage() {
   const router = useRouter();
-  const [password, setPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated, isChecking, handleLogout, refreshSession } = useAdminAuth();
   const [quickText, setQuickText] = useState('');
   const [quickTextTitle, setQuickTextTitle] = useState('');
   const [isUploadingText, setIsUploadingText] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  useEffect(() => {
-    const savedPassword = localStorage.getItem('admin_password');
-    if (savedPassword) {
-      setPassword(savedPassword);
-      setIsAuthenticated(true);
-    }
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('admin_password');
-    setPassword('');
-    setIsAuthenticated(false);
-    router.push('/admin');
-  };
 
   const handleQuickTextUpload = async () => {
     if (!quickText.trim()) {
@@ -58,11 +43,14 @@ export default function QuickTextPage() {
 
       const response = await fetch('/api/admin/upload', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${password}`
-        },
+        credentials: 'include',
         body: formData
       });
+
+      if (response.status === 401) {
+        await refreshSession();
+        throw new Error('Unauthorized');
+      }
 
       if (!response.ok) {
         const data = await response.json();
@@ -80,6 +68,14 @@ export default function QuickTextPage() {
       setIsUploadingText(false);
     }
   };
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

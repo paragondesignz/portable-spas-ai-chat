@@ -64,7 +64,7 @@ interface ChatMessage {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { password, isAuthenticated, isChecking, handleLogout } = useAdminAuth();
+  const { isAuthenticated, isChecking, handleLogout, refreshSession } = useAdminAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [chartRange, setChartRange] = useState(30);
@@ -88,8 +88,13 @@ export default function DashboardPage() {
     try {
       // Load enhanced stats from new API
       const statsResponse = await fetch(`/api/admin/stats?range=${chartRange}`, {
-        headers: { 'Authorization': `Bearer ${password}` }
+        credentials: 'include'
       });
+      if (statsResponse.status === 401) {
+        await refreshSession();
+        throw new Error('Unauthorized');
+      }
+
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
         setStats(statsData);
@@ -97,8 +102,13 @@ export default function DashboardPage() {
 
       // Load recent chats for the preview section
       const chatsResponse = await fetch('/api/admin/chat-logs?page=1&limit=5', {
-        headers: { 'Authorization': `Bearer ${password}` }
+        credentials: 'include'
       });
+      if (chatsResponse.status === 401) {
+        await refreshSession();
+        throw new Error('Unauthorized');
+      }
+
       if (chatsResponse.ok) {
         const chatsData = await chatsResponse.json();
         setRecentChatLogs(chatsData.logs || []);
@@ -117,9 +127,7 @@ export default function DashboardPage() {
 
     try {
       const response = await fetch(`/api/admin/chat-logs/${log.id}`, {
-        headers: {
-          'Authorization': `Bearer ${password}`
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -457,69 +465,72 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Test Chat Interface */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Test AI Assistant</h2>
-          <TestChat />
-        </div>
+        {/* Test Chat & Recent Chats - Side by Side on Desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Test Chat Interface */}
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Test AI Assistant</h2>
+            <TestChat />
+          </div>
 
-        {/* Recent Chats */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Chats</h2>
-          <Card className="p-6">
-            {isLoading ? (
-              <div className="text-center py-8">
-                <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-400 mb-2" />
-                <p className="text-gray-600">Loading chats...</p>
-              </div>
-            ) : recentChatLogs.length === 0 ? (
-              <div className="text-center py-8 bg-gray-50 rounded">
-                <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600">No recent chats</p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Chat logs will appear here as customers interact with the chatbot
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {recentChatLogs.map((log) => (
-                  <div
-                    key={log.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
-                    onClick={() => handleViewLog(log)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <MessageSquare className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                      <div>
-                        <p className="font-medium text-gray-900">{log.user_name}</p>
-                        <p className="text-sm text-gray-500">
-                          Started: {formatDate(log.created_at)}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+          {/* Recent Chats */}
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Chats</h2>
+            <Card className="p-6">
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-400 mb-2" />
+                  <p className="text-gray-600">Loading chats...</p>
+                </div>
+              ) : recentChatLogs.length === 0 ? (
+                <div className="text-center py-8 bg-gray-50 rounded">
+                  <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600">No recent chats</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Chat logs will appear here as customers interact with the chatbot
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {recentChatLogs.map((log) => (
+                    <div
+                      key={log.id}
+                      className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                      onClick={() => handleViewLog(log)}
                     >
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
-                  </div>
-                ))}
+                      <div className="flex items-center gap-3">
+                        <MessageSquare className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                        <div>
+                          <p className="font-medium text-gray-900">{log.user_name}</p>
+                          <p className="text-sm text-gray-500">
+                            Started: {formatDate(log.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+            {!isLoading && recentChatLogs.length > 0 && (
+              <div className="mt-4 flex justify-center">
+                <Link href="/admin/chats">
+                  <Button variant="outline">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    View All Chat Logs
+                  </Button>
+                </Link>
               </div>
             )}
-          </Card>
-          {!isLoading && recentChatLogs.length > 0 && (
-            <div className="mt-4 flex justify-center">
-              <Link href="/admin/chats">
-                <Button variant="outline">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  View All Chat Logs
-                </Button>
-              </Link>
-            </div>
-          )}
+          </div>
         </div>
 
         {/* Helpful Tips */}

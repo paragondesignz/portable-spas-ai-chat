@@ -1,23 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getChatLogById } from '@/lib/blob-db';
 import { getNZDateString } from '@/lib/timezone';
+import { authorizeAdminRequest } from '@/lib/admin-auth';
 
 export const runtime = 'nodejs';
-
-/**
- * Verify admin authentication
- */
-function verifyAuth(req: NextRequest): boolean {
-  const authHeader = req.headers.get('authorization');
-  const adminPassword = process.env.ADMIN_PASSWORD;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return false;
-  }
-
-  const token = authHeader.substring(7);
-  return token === adminPassword;
-}
 
 /**
  * Escape CSV field value
@@ -36,7 +22,16 @@ function escapeCSV(value: string): string {
  */
 export async function POST(req: NextRequest) {
   try {
-    if (!verifyAuth(req)) {
+    const authStatus = authorizeAdminRequest(req);
+
+    if (authStatus === 'misconfigured') {
+      return NextResponse.json(
+        { error: 'Server configuration error. ADMIN_PASSWORD and ADMIN_SESSION_SECRET must be set.' },
+        { status: 500 }
+      );
+    }
+
+    if (authStatus !== 'authorized') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

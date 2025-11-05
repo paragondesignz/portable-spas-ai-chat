@@ -7,13 +7,19 @@ import {
   getTotalChatsStats,
   getChatsByDate,
 } from '@/lib/stats-aggregator';
+import { authorizeAdminRequest } from '@/lib/admin-auth';
 
 export async function GET(request: NextRequest) {
-  // Check authentication
-  const authHeader = request.headers.get('authorization');
-  const adminPassword = process.env.ADMIN_PASSWORD;
+  const authStatus = authorizeAdminRequest(request);
 
-  if (!authHeader || authHeader !== `Bearer ${adminPassword}`) {
+  if (authStatus === 'misconfigured') {
+    return NextResponse.json(
+      { error: 'Server configuration error. ADMIN_PASSWORD and ADMIN_SESSION_SECRET must be set.' },
+      { status: 500 }
+    );
+  }
+
+  if (authStatus !== 'authorized') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

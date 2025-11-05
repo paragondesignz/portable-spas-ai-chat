@@ -1,37 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { RefreshCw, AlertCircle, Lock, Info, ShoppingCart, BookOpen } from 'lucide-react';
 import { AdminNav } from '@/components/admin-nav';
 import { Input } from '@/components/ui/input';
+import { useAdminAuth } from '@/hooks/use-admin-auth';
 
 export default function ContentImportPage() {
   const router = useRouter();
-  const [password, setPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated, isChecking, handleLogout, refreshSession } = useAdminAuth();
   const [isSyncingProducts, setIsSyncingProducts] = useState(false);
   const [isSyncingBlog, setIsSyncingBlog] = useState(false);
   const [blogUrl, setBlogUrl] = useState('https://portablespas.co.nz/blogs/news');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  useEffect(() => {
-    const savedPassword = localStorage.getItem('admin_password');
-    if (savedPassword) {
-      setPassword(savedPassword);
-      setIsAuthenticated(true);
-    }
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('admin_password');
-    setPassword('');
-    setIsAuthenticated(false);
-    router.push('/admin');
-  };
 
   const handleSyncProducts = async () => {
     setIsSyncingProducts(true);
@@ -42,10 +27,15 @@ export default function ContentImportPage() {
       const response = await fetch('/api/admin/sync-products', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${password}`,
           'Content-Type': 'application/json'
-        }
+        },
+        credentials: 'include'
       });
+
+      if (response.status === 401) {
+        await refreshSession();
+        throw new Error('Unauthorized');
+      }
 
       if (!response.ok) {
         const data = await response.json();
@@ -80,11 +70,16 @@ export default function ContentImportPage() {
       const response = await fetch('/api/admin/sync-blog', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${password}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ url: blogUrl })
       });
+
+      if (response.status === 401) {
+        await refreshSession();
+        throw new Error('Unauthorized');
+      }
 
       if (!response.ok) {
         const data = await response.json();
@@ -112,6 +107,14 @@ export default function ContentImportPage() {
       setIsSyncingBlog(false);
     }
   };
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

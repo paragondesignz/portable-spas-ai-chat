@@ -94,7 +94,7 @@ Each JSON file contains:
 ### Accessing the Dashboard
 
 1. Navigate to: `https://your-app.vercel.app/admin/chats`
-2. Login with your `ADMIN_PASSWORD`
+2. Login with your `ADMIN_PASSWORD` (ensure `ADMIN_SESSION_SECRET` is configured for secure sessions)
 
 ### Features
 
@@ -134,8 +134,9 @@ Get all chat logs with pagination and search
 - `limit` (optional): Items per page (default: 50)
 - `query` (optional): Search query
 
-**Headers:**
-- `Authorization: Bearer YOUR_ADMIN_PASSWORD`
+**Authentication:**
+- Preferred: Login via the `/admin` interface and reuse the session cookie (send requests with `credentials: 'include'`)
+- Alternate: Add the header `Authorization: Bearer YOUR_ADMIN_PASSWORD`
 
 **Response:**
 ```json
@@ -151,8 +152,7 @@ Get all chat logs with pagination and search
 ### GET `/api/admin/chat-logs/[id]`
 Get a specific chat log with all messages
 
-**Headers:**
-- `Authorization: Bearer YOUR_ADMIN_PASSWORD`
+**Authentication:** Same as above.
 
 **Response:**
 ```json
@@ -165,8 +165,7 @@ Get a specific chat log with all messages
 ### DELETE `/api/admin/chat-logs`
 Delete multiple chat logs
 
-**Headers:**
-- `Authorization: Bearer YOUR_ADMIN_PASSWORD`
+**Authentication:** Same as above.
 - `Content-Type: application/json`
 
 **Body:**
