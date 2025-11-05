@@ -12,6 +12,7 @@ import ReactMarkdown from 'react-markdown';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import UsageChart from '@/components/admin/usage-chart';
+import { TestChat } from '@/components/admin/test-chat';
 import { format } from 'date-fns';
 
 interface DashboardStats {
@@ -455,6 +456,12 @@ export default function DashboardPage() {
             />
           </div>
         )}
+
+        {/* Test Chat Interface */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Test AI Assistant</h2>
+          <TestChat />
+        </div>
 
         {/* Recent Chats */}
         <div className="mb-8">
