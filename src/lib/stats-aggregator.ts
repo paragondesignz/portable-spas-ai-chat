@@ -1,6 +1,7 @@
 import { list } from '@vercel/blob';
 import { ChatLog } from './blob-db';
-import { startOfDay, subDays, format, parseISO } from 'date-fns';
+import { format, parseISO } from 'date-fns';
+import { getNZDate, getNZStartOfDay, getNZDateString, subtractNZDays } from './timezone';
 
 // Simple in-memory cache with 10-minute TTL
 interface CacheEntry {
@@ -65,21 +66,21 @@ export async function getChatsOverTime(days: number = 30): Promise<Array<{
   if (cached) return cached;
 
   const logs = await getAllChatLogs();
-  const endDate = startOfDay(new Date());
-  const startDate = subDays(endDate, days - 1);
+  const endDate = getNZStartOfDay();
+  const startDate = subtractNZDays(endDate, days - 1);
 
   // Create a map for each day
   const dayMap = new Map<string, { chats: number; messages: number; users: Set<string> }>();
 
   // Initialize all days
   for (let i = 0; i < days; i++) {
-    const date = format(subDays(endDate, i), 'yyyy-MM-dd');
+    const date = getNZDateString(subtractNZDays(endDate, i));
     dayMap.set(date, { chats: 0, messages: 0, users: new Set() });
   }
 
   // Aggregate data
   logs.forEach(log => {
-    const createdDate = format(startOfDay(parseISO(log.created_at)), 'yyyy-MM-dd');
+    const createdDate = getNZDateString(log.created_at);
 
     if (dayMap.has(createdDate)) {
       const day = dayMap.get(createdDate)!;
@@ -116,14 +117,14 @@ export async function getTodayStats(): Promise<{
   if (cached) return cached;
 
   const logs = await getAllChatLogs();
-  const today = format(startOfDay(new Date()), 'yyyy-MM-dd');
-  const yesterday = format(subDays(startOfDay(new Date()), 1), 'yyyy-MM-dd');
+  const today = getNZDateString();
+  const yesterday = getNZDateString(subtractNZDays(getNZDate(), 1));
 
   let todayCount = 0;
   let yesterdayCount = 0;
 
   logs.forEach(log => {
-    const logDate = format(startOfDay(parseISO(log.created_at)), 'yyyy-MM-dd');
+    const logDate = getNZDateString(log.created_at);
     if (logDate === today) todayCount++;
     if (logDate === yesterday) yesterdayCount++;
   });
@@ -150,9 +151,9 @@ export async function getWeekStats(): Promise<{
   if (cached) return cached;
 
   const logs = await getAllChatLogs();
-  const today = new Date();
-  const weekAgo = subDays(today, 7);
-  const twoWeeksAgo = subDays(today, 14);
+  const today = getNZDate();
+  const weekAgo = subtractNZDays(today, 7);
+  const twoWeeksAgo = subtractNZDays(today, 14);
 
   let thisWeekCount = 0;
   let lastWeekCount = 0;
@@ -277,8 +278,8 @@ export async function getTotalChatsStats(): Promise<{
   if (cached) return cached;
 
   const logs = await getAllChatLogs();
-  const thirtyDaysAgo = subDays(new Date(), 30);
-  const sixtyDaysAgo = subDays(new Date(), 60);
+  const thirtyDaysAgo = subtractNZDays(getNZDate(), 30);
+  const sixtyDaysAgo = subtractNZDays(getNZDate(), 60);
 
   let last30Days = 0;
   let previous30Days = 0;
@@ -308,7 +309,7 @@ export async function getChatsByDate(date: string): Promise<ChatLog[]> {
   const logs = await getAllChatLogs();
 
   return logs.filter(log => {
-    const logDate = format(startOfDay(parseISO(log.created_at)), 'yyyy-MM-dd');
+    const logDate = getNZDateString(log.created_at);
     return logDate === date;
   }).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 }

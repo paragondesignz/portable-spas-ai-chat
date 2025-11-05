@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getNZDateString } from '@/lib/timezone';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes for processing
@@ -124,7 +125,7 @@ function convertShopifyProducts(shopifyProducts: ShopifyProduct[]): Product[] {
 }
 
 function convertToMarkdown(products: Product[]): string {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getNZDateString();
 
   let md = `# Portable Spas Product Catalog\n\n`;
   md += `*Last updated: ${today}*\n\n`;
@@ -256,7 +257,7 @@ export async function POST(req: NextRequest) {
 
     // Upload to Pinecone
     console.log('Uploading to Pinecone...');
-    const fileName = `product-catalog-${new Date().toISOString().split('T')[0]}.md`;
+    const fileName = `product-catalog-${getNZDateString()}.md`;
 
     // Create FormData for Pinecone API (same format as upload endpoint)
     const formData = new FormData();

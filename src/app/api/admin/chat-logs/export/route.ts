@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getChatLogById } from '@/lib/blob-db';
+import { getNZDateString } from '@/lib/timezone';
 
 export const runtime = 'nodejs';
 
@@ -84,7 +85,7 @@ export async function POST(req: NextRequest) {
       status: 200,
       headers: {
         'Content-Type': 'text/csv',
-        'Content-Disposition': `attachment; filename="chat-logs-${new Date().toISOString().split('T')[0]}.csv"`,
+        'Content-Disposition': `attachment; filename="chat-logs-${getNZDateString()}.csv"`,
       },
     });
 

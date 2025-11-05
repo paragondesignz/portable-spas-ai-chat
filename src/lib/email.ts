@@ -30,7 +30,7 @@ export async function sendCallbackNotification(data: CallbackRequestData) {
   try {
     const emailAddress = (process.env.FROM_EMAIL || 'noreply@ai.portablespas.co.nz').trim();
     const fromEmail = `Portable Spas NZ AI Assistant <${emailAddress}>`;
-    const toEmail = (process.env.NOTIFICATION_EMAIL || 'mark@paragondesign.co.nz').trim();
+    const toEmail = (process.env.NOTIFICATION_EMAIL || 'sales@portablespas.co.nz').trim();
 
     // Format recent conversation
     const conversationHtml = data.recentMessages

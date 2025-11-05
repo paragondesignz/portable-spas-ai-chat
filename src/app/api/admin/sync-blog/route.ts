@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getNZDateString } from '@/lib/timezone';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes for processing
@@ -125,7 +126,7 @@ function convertShopifyBlogPosts(shopifyPosts: ShopifyBlogPost[], blogHandle: st
 }
 
 function convertToMarkdown(posts: BlogPost[]): string {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getNZDateString();
 
   let md = `# Portable Spas Blog Posts\n\n`;
   md += `*Last updated: ${today}*\n\n`;
@@ -183,7 +184,7 @@ async function syncBlogToPinecone(blogHandle: string, apiKey: string, assistantN
   const markdown = convertToMarkdown(posts);
 
   // Upload to Pinecone
-  const fileName = `blog-${blogHandle}-${new Date().toISOString().split('T')[0]}.md`;
+  const fileName = `blog-${blogHandle}-${getNZDateString()}.md`;
 
   // Create FormData for Pinecone API
   const formData = new FormData();
