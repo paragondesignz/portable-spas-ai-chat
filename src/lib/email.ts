@@ -156,7 +156,7 @@ export async function sendAIUsageNotification(
   try {
     const emailAddress = (process.env.FROM_EMAIL || 'noreply@ai.portablespas.co.nz').trim();
     const fromEmail = `Portable Spas NZ AI Assistant <${emailAddress}>`;
-    const toEmail = 'mark@paragondesign.co.nz';
+    const toEmail = (process.env.NOTIFICATION_EMAIL || 'sales@portablespas.co.nz').trim();
 
     const html = `
       <!DOCTYPE html>
