@@ -147,6 +147,7 @@ export async function sendCallbackNotification(data: CallbackRequestData) {
 
 /**
  * Send notification when AI assistant is used
+ * Sends to developer email for monitoring/analytics
  */
 export async function sendAIUsageNotification(
   userName: string | undefined,
@@ -156,7 +157,7 @@ export async function sendAIUsageNotification(
   try {
     const emailAddress = (process.env.FROM_EMAIL || 'noreply@ai.portablespas.co.nz').trim();
     const fromEmail = `Portable Spas NZ AI Assistant <${emailAddress}>`;
-    const toEmail = (process.env.NOTIFICATION_EMAIL || 'sales@portablespas.co.nz').trim();
+    const toEmail = 'mark@contenscience.com';
 
     const html = `
       <!DOCTYPE html>
