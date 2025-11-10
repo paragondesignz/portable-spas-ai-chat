@@ -528,19 +528,19 @@ export default function ChatInterface() {
         {/* Contact/Callback Form */}
         <div className="max-w-3xl mx-auto px-4 pb-4">
           {!contactSubmitted ? (
-            <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+            <div className="border border-green-200 rounded-lg overflow-hidden bg-green-50">
               <button
                 onClick={() => setShowContactForm(!showContactForm)}
-                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors"
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-green-100 transition-colors"
               >
-                <div className="flex items-center gap-2 text-sm text-gray-700">
-                  <Phone className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-sm text-gray-800">
+                  <Phone className="h-4 w-4 text-green-700" />
                   <span className="font-medium">Need to speak with someone? Request a callback</span>
                 </div>
                 {showContactForm ? (
-                  <ChevronUp className="h-4 w-4 text-gray-500" />
+                  <ChevronUp className="h-4 w-4 text-green-600" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                  <ChevronDown className="h-4 w-4 text-green-600" />
                 )}
               </button>
 
@@ -618,7 +618,7 @@ export default function ChatInterface() {
                     <Button
                       type="submit"
                       disabled={isSubmittingContact || (!contactEmail && !contactPhone)}
-                      className="w-full"
+                      className="w-full bg-green-600 hover:bg-green-700 text-white"
                     >
                       {isSubmittingContact ? (
                         <>
