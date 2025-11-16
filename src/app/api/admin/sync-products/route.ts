@@ -13,8 +13,8 @@ interface ShopifyProduct {
   vendor: string;
   product_type: string;
   tags: string | string[]; // Can be string or array
-  status: 'active' | 'draft' | 'archived';
-  published_at: string | null;
+  status?: 'active' | 'draft' | 'archived';
+  published_at?: string | null;
   variants: Array<{
     id: number;
     title: string;
@@ -95,7 +95,11 @@ async function fetchAllProducts(): Promise<ShopifyProduct[]> {
 
 function convertShopifyProducts(shopifyProducts: ShopifyProduct[]): Product[] {
   const filteredProducts = shopifyProducts
-    .filter(sp => sp.status === 'active' && !!sp.published_at)
+    .filter(sp => {
+      const status = sp.status ?? 'active';
+      const publishedAt = sp.published_at ?? null;
+      return status === 'active' && publishedAt !== null;
+    })
     .map(sp => ({
       ...sp,
       variants: sp.variants.filter(variant =>
