@@ -13,11 +13,17 @@ interface ShopifyProduct {
   vendor: string;
   product_type: string;
   tags: string | string[]; // Can be string or array
+  status: 'active' | 'draft' | 'archived';
+  published_at: string | null;
   variants: Array<{
     id: number;
     title: string;
     price: string;
     sku: string;
+    available?: boolean;
+    inventory_quantity?: number | null;
+    inventory_policy?: 'deny' | 'continue';
+    inventory_management?: string | null;
   }>;
 }
 
@@ -88,7 +94,20 @@ async function fetchAllProducts(): Promise<ShopifyProduct[]> {
 }
 
 function convertShopifyProducts(shopifyProducts: ShopifyProduct[]): Product[] {
-  return shopifyProducts.map(sp => {
+  const filteredProducts = shopifyProducts
+    .filter(sp => sp.status === 'active' && !!sp.published_at)
+    .map(sp => ({
+      ...sp,
+      variants: sp.variants.filter(variant =>
+        variant.available ||
+        variant.inventory_policy === 'continue' ||
+        variant.inventory_management == null ||
+        (variant.inventory_quantity != null && variant.inventory_quantity > 0)
+      )
+    }))
+    .filter(sp => sp.variants.length > 0);
+
+  return filteredProducts.map(sp => {
     // Get primary variant (usually the first one, or cheapest)
     const primaryVariant = sp.variants[0];
 
