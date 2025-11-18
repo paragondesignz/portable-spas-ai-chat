@@ -5,15 +5,34 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Upload, RefreshCw, AlertCircle, Lock, Info } from 'lucide-react';
+import { Upload, RefreshCw, AlertCircle, Lock, Info, Send, CheckCircle } from 'lucide-react';
 import { AdminNav } from '@/components/admin-nav';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
+
+interface KnowledgebaseItem {
+  id: string;
+  title: string;
+  type: 'upload' | 'text';
+  originalFileName: string;
+  storedFileName: string;
+  fileUrl: string;
+  status: 'draft' | 'submitted' | 'error';
+  size: number;
+  createdAt: string;
+  updatedAt: string;
+  submittedAt?: string;
+  pineconeFileId?: string;
+  pineconeStatus?: string;
+  lastSubmissionError?: string;
+}
 
 export default function UploadPage() {
   const router = useRouter();
   const { isAuthenticated, isChecking, handleLogout, refreshSession } = useAdminAuth();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [draftItem, setDraftItem] = useState<KnowledgebaseItem | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -27,12 +46,14 @@ export default function UploadPage() {
       if (!isValidType) {
         setError(`Unsupported file type. Please upload: ${allowedExtensions.join(', ')}`);
         setSelectedFile(null);
+        setDraftItem(null);
         setSuccess('');
         e.target.value = '';
         return;
       }
 
       setSelectedFile(file);
+      setDraftItem(null);
       setError('');
       setSuccess('');
     }
@@ -65,11 +86,12 @@ export default function UploadPage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Upload failed');
+        throw new Error(data.error || 'Saving draft failed');
       }
 
       const data = await response.json();
-      setSuccess(`File "${data.file.name}" uploaded successfully!`);
+      setDraftItem(data.item);
+      setSuccess(`File saved as draft. Review and submit when ready.`);
       setSelectedFile(null);
 
       const fileInput = document.getElementById('file-input') as HTMLInputElement;
@@ -79,6 +101,39 @@ export default function UploadPage() {
       setError(err.message);
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleSubmitDraft = async () => {
+    if (!draftItem) return;
+
+    setIsSubmitting(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await fetch(`/api/admin/knowledgebase/${draftItem.id}/submit`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (response.status === 401) {
+        await refreshSession();
+        throw new Error('Unauthorized');
+      }
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Submission failed');
+      }
+
+      const data = await response.json();
+      setDraftItem(data.item);
+      setSuccess(`"${draftItem.title}" submitted to the knowledge base successfully!`);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -124,7 +179,9 @@ export default function UploadPage() {
       <div className="max-w-4xl mx-auto p-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Upload File</h1>
-          <p className="text-gray-600">Upload documents to your Pinecone knowledge base</p>
+          <p className="text-gray-600">
+            Save files as drafts, then submit them to the knowledge base when ready.
+          </p>
         </div>
 
         {error && (
@@ -134,9 +191,53 @@ export default function UploadPage() {
           </div>
         )}
 
-        {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
-            {success}
+        {(success || draftItem) && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6 flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5" />
+              <span>{success || 'Draft saved successfully.'}</span>
+            </div>
+            {draftItem && (
+              <div className="flex flex-col gap-2 text-sm text-green-800">
+                <div>
+                  <strong>Title:</strong> {draftItem.title}
+                </div>
+                <div>
+                  <strong>Status:</strong>{' '}
+                  {draftItem.status === 'submitted' ? 'Submitted to knowledge base' : 'Draft'}
+                </div>
+                {draftItem.status !== 'submitted' && (
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      onClick={handleSubmitDraft}
+                      disabled={isSubmitting}
+                      className="sm:w-auto"
+                      size="sm"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-4 w-4 mr-2" />
+                          Submit to Knowledge Base
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => router.push('/admin/files')}
+                      variant="outline"
+                      size="sm"
+                      className="sm:w-auto"
+                    >
+                      Manage Drafts
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -175,12 +276,12 @@ export default function UploadPage() {
               {isUploading ? (
                 <>
                   <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
-                  Uploading to Pinecone...
+                  Saving draft...
                 </>
               ) : (
                 <>
                   <Upload className="h-5 w-5 mr-2" />
-                  Upload to Pinecone
+                  Save Draft
                 </>
               )}
             </Button>
@@ -193,9 +294,9 @@ export default function UploadPage() {
             <div className="text-sm text-blue-900">
               <p className="font-semibold mb-1">How File Processing Works</p>
               <ul className="list-disc list-inside space-y-1 text-blue-800">
-                <li>Files are converted to text and split into chunks</li>
-                <li>Chunks are converted to vectors (embeddings)</li>
-                <li>Vectors are stored for AI-powered semantic search</li>
+                <li>Uploaded files are saved as drafts for review</li>
+                <li>Admins can download, edit, or delete drafts before submission</li>
+                <li>When submitted, files are converted to Pinecone knowledge entries</li>
                 <li>CSV files are automatically converted to Markdown format</li>
               </ul>
               <p className="mt-2 text-blue-800">

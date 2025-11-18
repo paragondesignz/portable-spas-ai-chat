@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authorizeAdminRequest } from '@/lib/admin-auth';
+import { createUploadDraft } from '@/lib/knowledgebase-store';
 
 export const runtime = 'nodejs';
 
@@ -106,21 +107,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Upload to Pinecone
-    const apiKey = process.env.PINECONE_API_KEY;
-    const assistantName = process.env.PINECONE_ASSISTANT_NAME || 'portable-spas';
-
-    if (!apiKey) {
-      console.error('Missing PINECONE_API_KEY environment variable');
-      return NextResponse.json(
-        { error: 'Server configuration error: Missing API key' },
-        { status: 500, headers: corsHeaders }
-      );
-    }
-
     // Convert CSV to Markdown if needed
     let uploadBlob: Blob;
     let uploadFileName: string;
+    let notes: string | undefined;
 
     if (fileName.endsWith('.csv')) {
       console.log(`Converting CSV file "${file.name}" to Markdown format...`);
@@ -128,52 +118,32 @@ export async function POST(req: NextRequest) {
       uploadBlob = converted.blob;
       uploadFileName = converted.name;
       console.log(`Converted to "${uploadFileName}"`);
+      notes = 'Converted from CSV to Markdown';
     } else {
       const fileBuffer = await file.arrayBuffer();
       uploadBlob = new Blob([fileBuffer], { type: file.type });
       uploadFileName = file.name;
     }
 
-    console.log(`Uploading file "${uploadFileName}" (${uploadBlob.size} bytes) to Pinecone assistant "${assistantName}"`);
+    console.log(
+      `Saving file "${uploadFileName}" (${uploadBlob.size} bytes) as knowledge base draft`
+    );
 
-    // Create FormData for Pinecone API
-    const pineconeFormData = new FormData();
-    pineconeFormData.append('file', uploadBlob, uploadFileName);
-
-    // Call Pinecone Assistant API directly
-    const response = await fetch(`https://prod-1-data.ke.pinecone.io/assistant/files/${assistantName}`, {
-      method: 'POST',
-      headers: {
-        'Api-Key': apiKey,
-      },
-      body: pineconeFormData,
+    const draft = await createUploadDraft({
+      file: uploadBlob,
+      originalFileName: uploadFileName,
+      contentType: uploadBlob.type || file.type,
+      notes,
     });
 
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Pinecone API Error:', response.status, errorData);
-      return NextResponse.json(
-        {
-          error: `Pinecone upload failed (${response.status})`,
-          details: errorData || 'No error details available'
-        },
-        { status: 500, headers: corsHeaders }
-      );
-    }
-
-    const data = await response.json();
-    console.log('File uploaded successfully:', data);
-
-    return NextResponse.json({
-      success: true,
-      file: {
-        id: data.id,
-        name: data.name,
-        status: data.status,
-        size: data.size
+    return NextResponse.json(
+      {
+        success: true,
+        item: draft,
+        message: 'File saved as draft. Submit to the knowledge base when ready.',
       },
-      message: 'File uploaded successfully'
-    }, { headers: corsHeaders });
+      { headers: corsHeaders }
+    );
 
   } catch (error: any) {
     console.error('Upload file error:', error);

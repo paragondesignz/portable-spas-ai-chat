@@ -14,7 +14,7 @@ export function AdminNav({ onLogout }: AdminNavProps) {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/admin/files', label: 'Files', icon: FileText },
+    { href: '/admin/files', label: 'Knowledge Base', icon: FileText },
     { href: '/admin/upload', label: 'Upload', icon: Upload },
     { href: '/admin/quick-text', label: 'Quick Text', icon: Type },
     { href: '/admin/content-import', label: 'Content Import', icon: Package },

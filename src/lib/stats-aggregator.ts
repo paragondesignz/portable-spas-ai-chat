@@ -130,7 +130,7 @@ export async function getTodayStats(): Promise<{
   });
 
   const percentChange = yesterdayCount === 0
-    ? (todayCount > 0 ? 100 : 0)
+    ? (todayCount > 0 ? todayCount * 100 : 0)
     : ((todayCount - yesterdayCount) / yesterdayCount) * 100;
 
   const result = { today: todayCount, yesterday: yesterdayCount, percentChange };
