@@ -42,6 +42,7 @@ interface KnowledgebaseItem {
   pineconeStatus?: string;
   lastSubmissionError?: string;
   notes?: string;
+  remoteOnly?: boolean;
 }
 
 interface KnowledgebaseItemDetail extends KnowledgebaseItem {
@@ -128,13 +129,13 @@ export default function FilesPage() {
   };
 
   const handleDelete = async (item: KnowledgebaseItem) => {
-    if (
-      !window.confirm(
-        `Delete "${item.title}"? This removes the draft${
+    const confirmationMessage = item.remoteOnly
+      ? `Remove "${item.title}" from Pinecone? This will delete the remote knowledge entry.`
+      : `Delete "${item.title}"? This removes the draft${
           item.status === 'submitted' ? ' and the Pinecone knowledge entry' : ''
-        }.`
-      )
-    ) {
+        }.`;
+
+    if (!window.confirm(confirmationMessage)) {
       return;
     }
 
@@ -160,7 +161,11 @@ export default function FilesPage() {
 
       setItems((prev) => prev.filter((entry) => entry.id !== item.id));
       setDetailItem((current) => (current?.id === item.id ? null : current));
-      setSuccess(`"${item.title}" deleted successfully.`);
+      setSuccess(
+        item.remoteOnly
+          ? `"${item.title}" removed from Pinecone.`
+          : `"${item.title}" deleted successfully.`
+      );
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -260,8 +265,11 @@ export default function FilesPage() {
     return 'Draft';
   };
 
-  const typeLabel = (type: KnowledgebaseType) => {
-    return type === 'text' ? 'Text Entry' : 'Uploaded File';
+  const typeLabel = (item: KnowledgebaseItem) => {
+    if (item.remoteOnly) {
+      return 'Uploaded File (Pinecone)';
+    }
+    return item.type === 'text' ? 'Text Entry' : 'Uploaded File';
   };
 
   if (isChecking) {
@@ -400,11 +408,18 @@ export default function FilesPage() {
                     >
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
-                          <span className="font-medium text-gray-900">{item.title}</span>
+                          <span className="font-medium text-gray-900 flex items-center gap-2">
+                            {item.title}
+                            {item.remoteOnly && (
+                              <span className="text-[10px] font-semibold text-blue-600 uppercase tracking-wide">
+                                Remote
+                              </span>
+                            )}
+                          </span>
                           <span className="text-xs text-gray-500">{item.originalFileName}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-sm text-gray-600">{typeLabel(item.type)}</td>
+                      <td className="py-3 px-4 text-sm text-gray-600">{typeLabel(item)}</td>
                       <td className="py-3 px-4 text-sm text-gray-600">{formatDate(item.createdAt)}</td>
                       <td className="py-3 px-4">
                         <div className="flex flex-col gap-1">
@@ -425,6 +440,11 @@ export default function FilesPage() {
                               {item.lastSubmissionError}
                             </span>
                           )}
+                          {item.remoteOnly && (
+                            <span className="text-xs text-blue-600">
+                              Remote Pinecone entry (original file unavailable)
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="py-3 px-4 text-sm text-gray-600">{formatBytes(item.size)}</td>
@@ -439,17 +459,28 @@ export default function FilesPage() {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="sm" asChild title="Download">
-                            <a
-                              href={item.fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-gray-600 hover:text-gray-800"
+                          {item.fileUrl ? (
+                            <Button variant="outline" size="sm" asChild title="Download">
+                              <a
+                                href={item.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-gray-600 hover:text-gray-800"
+                              >
+                                <Download className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled
+                              title="Original file not available"
                             >
-                              <Download className="h-4 w-4" />
-                            </a>
-                          </Button>
-                          {item.status !== 'submitted' && (
+                              <Download className="h-4 w-4 opacity-40" />
+                            </Button>
+                          )}
+                          {!item.remoteOnly && item.status !== 'submitted' && (
                             <Button
                               onClick={() => handleSubmit(item)}
                               size="sm"
@@ -475,13 +506,18 @@ export default function FilesPage() {
                             variant="outline"
                             size="sm"
                             disabled={deletingId === item.id}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            title="Delete draft"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 flex items-center gap-2"
+                            title={item.remoteOnly ? 'Remove from Pinecone' : 'Delete draft'}
                           >
                             {deletingId === item.id ? (
                               <RefreshCw className="h-4 w-4 animate-spin" />
                             ) : (
-                              <Trash2 className="h-4 w-4" />
+                              <>
+                                <Trash2 className="h-4 w-4" />
+                                <span>
+                                  {item.remoteOnly ? 'Remove' : 'Delete'}
+                                </span>
+                              </>
                             )}
                           </Button>
                         </div>
@@ -518,7 +554,13 @@ export default function FilesPage() {
                   </div>
                   <div>
                     <label className="text-xs text-gray-500 uppercase tracking-wide">Type</label>
-                    <p className="text-sm text-gray-900">{typeLabel(detailItem.type)}</p>
+                    <p className="text-sm text-gray-900">{typeLabel(detailItem)}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 uppercase tracking-wide">Location</label>
+                    <p className="text-sm text-gray-900">
+                      {detailItem.remoteOnly ? 'Pinecone (remote only)' : 'Draft storage'}
+                    </p>
                   </div>
                   <div>
                     <label className="text-xs text-gray-500 uppercase tracking-wide">
@@ -583,22 +625,25 @@ export default function FilesPage() {
                 )}
 
                 <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    asChild
-                  >
-                    <a
-                      href={detailItem.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2"
-                    >
-                      <Download className="h-4 w-4" />
-                      Download File
-                    </a>
-                  </Button>
-                  {detailItem.status !== 'submitted' && (
+                  {detailItem.fileUrl ? (
+                    <Button variant="outline" size="sm" asChild>
+                      <a
+                        href={detailItem.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        Download File
+                      </a>
+                    </Button>
+                  ) : (
+                    <Button variant="outline" size="sm" disabled>
+                      <Download className="h-4 w-4 opacity-40" />
+                      Download Unavailable
+                    </Button>
+                  )}
+                  {!detailItem.remoteOnly && detailItem.status !== 'submitted' && (
                     <Button
                       size="sm"
                       onClick={() => handleSubmit(detailItem)}
@@ -630,7 +675,7 @@ export default function FilesPage() {
                     ) : (
                       <>
                         <Trash2 className="h-4 w-4" />
-                        Delete
+                        {detailItem.remoteOnly ? 'Remove from Pinecone' : 'Delete'}
                       </>
                     )}
                   </Button>

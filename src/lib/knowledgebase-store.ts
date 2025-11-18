@@ -23,6 +23,7 @@ export interface KnowledgebaseItem {
   pineconeStatus?: string;
   lastSubmissionError?: string;
   notes?: string;
+  remoteOnly?: boolean;
 }
 
 const BASE_PREFIX = 'knowledgebase/items';
@@ -72,6 +73,7 @@ function normalizeItem(item: KnowledgebaseItem): KnowledgebaseItem {
   return {
     ...item,
     size: Number(item.size),
+    remoteOnly: item.remoteOnly ?? false,
   };
 }
 
@@ -151,6 +153,7 @@ export async function createUploadDraft(params: {
     createdAt: now,
     updatedAt: now,
     notes: params.notes,
+    remoteOnly: false,
   };
 
   await saveMetadata(id, item);
@@ -192,6 +195,7 @@ export async function createTextDraft(params: {
     status: 'draft',
     createdAt: now,
     updatedAt: now,
+    remoteOnly: false,
   };
 
   await saveMetadata(id, item);
@@ -267,6 +271,7 @@ export async function updateTextItem(id: string, params: {
     fileUrl: putResult.url,
     size: blob.size,
     updatedAt: now,
+    remoteOnly: false,
   };
 
   if (item.status === 'submitted') {
