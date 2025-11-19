@@ -30,6 +30,41 @@ const BASE_PREFIX = 'knowledgebase/items';
 
 const METADATA_FILENAME = 'metadata.json';
 
+async function deletePineconeFile(fileId?: string) {
+  if (!fileId) return;
+
+  const apiKey = process.env.PINECONE_API_KEY;
+  const assistantName = process.env.PINECONE_ASSISTANT_NAME || 'portable-spas';
+
+  if (!apiKey) {
+    console.warn('PINECONE_API_KEY is not configured; skipping Pinecone delete');
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `https://prod-1-data.ke.pinecone.io/assistant/files/${assistantName}/${fileId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Api-Key': apiKey,
+        },
+      }
+    );
+
+    if (!response.ok && response.status !== 404) {
+      const text = await response.text();
+      console.error(
+        'Failed to remove Pinecone file:',
+        response.status,
+        text || '<empty>'
+      );
+    }
+  } catch (error) {
+    console.error('Error removing Pinecone file:', error);
+  }
+}
+
 function getItemPrefix(id: string) {
   return `${BASE_PREFIX}/${id}`;
 }
@@ -275,6 +310,8 @@ export async function updateTextItem(id: string, params: {
   };
 
   if (item.status === 'submitted') {
+    await deletePineconeFile(item.pineconeFileId);
+
     updated.status = 'draft';
     delete updated.submittedAt;
     delete updated.pineconeFileId;
