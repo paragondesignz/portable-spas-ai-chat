@@ -190,7 +190,7 @@ export async function GET(
       );
     }
 
-    const url = new URL(req.url);
+    const url = req.nextUrl;
     const includeContentParam = url.searchParams.get('includeContent');
     const includeContent =
       includeContentParam === '1' ||
@@ -314,7 +314,7 @@ export async function DELETE(
       );
     }
 
-    const url = new URL(req.url);
+    const url = req.nextUrl;
     const skipPinecone = url.searchParams.get('skipPinecone') === '1';
 
     if (!skipPinecone && pineconeId) {

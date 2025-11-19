@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const url = new URL(req.url);
+    const url = req.nextUrl;
     const typeParam = url.searchParams.get('type') as KnowledgebaseItemType | null;
     const statusParam = url.searchParams.get('status') as KnowledgebaseItemStatus | null;
 
@@ -148,8 +148,16 @@ export async function GET(req: NextRequest) {
           )
         );
 
+        const localNames = new Set(
+          localItems.map((item) => item.originalFileName.toLowerCase())
+        );
+
         const remoteItems = remoteFiles
-          .filter((file) => !localIds.has(file.id))
+          .filter(
+            (file) =>
+              !localIds.has(file.id) &&
+              !localNames.has(file.name.toLowerCase())
+          )
           .map((file) => mapRemoteToKnowledgeItem(file));
 
         mergedItems = mergedItems.concat(remoteItems);

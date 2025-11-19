@@ -289,6 +289,8 @@ export default function QuickTextPage() {
       );
       setSelectedId(updatedItem.id);
       setDirty(false);
+      await loadItems();
+      setSelectedId(updatedItem.id);
       setSuccess(`"${updatedItem.title}" submitted to the knowledge base.`);
     } catch (err: any) {
       setError(err.message);
