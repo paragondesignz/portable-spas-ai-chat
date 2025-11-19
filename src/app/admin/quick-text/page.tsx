@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { AdminNav } from '@/components/admin-nav';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
+import { MarkdownEditor } from '@/components/admin/markdown-editor';
 
 type KnowledgebaseStatus = 'draft' | 'submitted' | 'error';
 
@@ -538,25 +539,15 @@ export default function QuickTextPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Markdown Content <span className="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    value={content}
-                    onChange={(e) => {
-                      setContent(e.target.value);
-                      setDirty(true);
-                    }}
-                    placeholder="Add important knowledge. Markdown is supported."
-                    rows={16}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-y"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Example headings: <code># Section Title</code>, <code>- bullet point</code>,{' '}
-                    <code>**bold text**</code>
-                  </p>
-                </div>
+                <MarkdownEditor
+                  value={content}
+                  onChange={(nextValue) => {
+                    setContent(nextValue);
+                    setDirty(true);
+                  }}
+                  placeholder="Add important knowledge. Supports Markdown."
+                  className="bg-transparent"
+                />
 
                 <div className="flex flex-wrap gap-2 justify-end">
                   {selectedItem && (

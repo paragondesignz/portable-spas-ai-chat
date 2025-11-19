@@ -62,6 +62,24 @@ export async function POST(
       );
     }
 
+    if ((item as any).remoteOnly) {
+      return NextResponse.json(
+        {
+          error: 'This item lives only in Pinecone. Create or load a local draft before submitting.',
+        },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    if (!item.fileUrl) {
+      return NextResponse.json(
+        {
+          error: 'No stored file found for this entry. Save the draft again before submitting.',
+        },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
     const apiKey = process.env.PINECONE_API_KEY;
     const assistantName = process.env.PINECONE_ASSISTANT_NAME || 'portable-spas';
 
