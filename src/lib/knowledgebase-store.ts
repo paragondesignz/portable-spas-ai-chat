@@ -101,6 +101,7 @@ async function saveMetadata(id: string, item: KnowledgebaseItem) {
     access: 'public',
     contentType: 'application/json',
     addRandomSuffix: false,
+    allowOverwrite: true,
   });
 }
 
@@ -298,6 +299,7 @@ export async function updateTextItem(id: string, params: {
     access: 'public',
     contentType: 'text/markdown',
     addRandomSuffix: false,
+    allowOverwrite: true,
   });
 
   const updated: KnowledgebaseItem = {
